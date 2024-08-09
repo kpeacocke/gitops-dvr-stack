@@ -51,5 +51,18 @@ services:
     volumes:
       - '/volume1/dkrcfg/nzbhydra:/config'
     restart: always
+  jackett:
+    image: 'lscr.io/linuxserver/jackett:latest'
+    container_name: jackett
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '/volume1/dkrcfg/jackett:/config'
+    restart: always
 networks:
    gluetun: null
