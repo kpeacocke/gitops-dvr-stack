@@ -153,6 +153,21 @@ services:
       - '/volume1/dkrcfg/mylar:/config'
       - '/volume1/downloads:/downloads'
     restart: always
+  readarr:
+    image: 'lscr.io/linuxserver/readarr:nightly-0.4.19.2811-ls400'
+    container_name: readarr
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '/volume1/Books:/books'
+      - '/volume1/dkrcfg/readarr:/config'
+      - '/volume1/downloads:/downloads'
+    restart: always
   heimdall:
     image: 'lscr.io/linuxserver/heimdall:latest'
     container_name: heimdall
