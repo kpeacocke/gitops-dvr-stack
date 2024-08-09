@@ -38,6 +38,18 @@ services:
     restart: always
     security_opt:
       - no-new-privileges:true
-
+  nzbhydra:
+    image: 'lscr.io/linuxserver/nzbhydra2:latest'
+    container_name: nzbhydra
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '/volume1/dkrcfg/nzbhydra:/config'
+    restart: always
 networks:
    gluetun: null
