@@ -64,5 +64,35 @@ services:
     volumes:
       - '/volume1/dkrcfg/jackett:/config'
     restart: always
+  sabnzbd:
+    image: 'lscr.io/linuxserver/sabnzbd:latest'
+    container_name: sabnzbd
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '/volume1/dkrcfg/sabnzbd:/config'
+      - '/volume1/downloads:/downloads'
+    restart: always
+  transmission:
+    image: 'lscr.io/linuxserver/transmission:latest'
+    container_name: transmission 
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+      - PASS=REDACTED
+      - FILE__PEERPORT=/volume1/dkrcfg/gluetun/portfwd
+    volumes:
+      - '/volume1/dkrcfg/transmission:/config'
+      - '/volume1/downloads:/downloads'
+    restart: always
 networks:
    gluetun: null
