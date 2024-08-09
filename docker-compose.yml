@@ -138,5 +138,21 @@ services:
       - '/volume1/Music:/music'
       - '/volume1/dkrcfg/lidarr:/config'
       - '/volume1/downloads:/downloads'
+
+  mylar:
+    image: 'lscr.io/linuxserver/mylar3:latest'
+    container_name: mylar
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '/volume1/Comics:/comics'
+      - '/volume1/dkrcfg/mylar:/config'
+      - '/volume1/downloads:/downloads'
+    restart: always
 networks:
    gluetun: null
