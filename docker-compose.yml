@@ -4,7 +4,8 @@ services:
     image: 'qmcgaw/gluetun:latest'
     container_name: gluetun
     networks:
-      - gluetun
+      dvr:
+        ipv4_address: 192.168.5.110
     cap_add:
       - NET_ADMIN
     ports:
@@ -180,4 +181,11 @@ services:
       - '/volume1/dkrcfg/heimdall:/config'
     restart: always
 networks:
-   gluetun: null
+  dvr:
+    driver: macvlan
+    driver_opts:
+      parent: eth0
+    ipam:
+      config:
+        - subnet: 192.168.5.0/24
+          gateway: 192.168.5.1
