@@ -26,7 +26,7 @@ services:
       - VPN_SERVICE_PROVIDER=private internet access
       - OPENVPN_USER=REDACTED
       - OPENVPN_PASSWORD=REDACTED
-      - SERVER_REGIONS=Switzerland
+      - SERVER_REGIONS=Netherlands
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_STATUS_FILE=/gluetun/portfwd
       - UPDATER_VPN_SERVICE_PROVIDER=private internet access
