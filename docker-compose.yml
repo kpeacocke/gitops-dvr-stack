@@ -4,8 +4,7 @@ services:
     image: 'qmcgaw/gluetun:latest'
     container_name: gluetun
     networks:
-      dvr:
-        ipv4_address: 192.168.5.110
+      - gluetun
     cap_add:
       - NET_ADMIN
     ports:
@@ -26,7 +25,7 @@ services:
       - VPN_SERVICE_PROVIDER=private internet access
       - OPENVPN_USER=REDACTED
       - OPENVPN_PASSWORD=REDACTED
-      - SERVER_REGIONS=Netherlands
+      - SERVER_REGIONS=Switzerland
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_STATUS_FILE=/gluetun/portfwd
       - UPDATER_VPN_SERVICE_PROVIDER=private internet access
@@ -181,11 +180,4 @@ services:
       - '/volume1/dkrcfg/heimdall:/config'
     restart: always
 networks:
-  dvr:
-    driver: macvlan
-    driver_opts:
-      parent: eth0
-    ipam:
-      config:
-        - subnet: 192.168.5.0/24
-          gateway: 192.168.5.1
+   gluetun: null
