@@ -1,0 +1,8 @@
+---
+commitizen:
+  changelog_file: CHANGELOG.md
+  name: cz_conventional_commits
+  tag_format: v$version
+  version: 0.1.1
+  version_files:
+  - .version

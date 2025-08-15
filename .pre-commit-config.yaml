@@ -1,0 +1,45 @@
+---
+repos:
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.8.3
+    hooks:
+      - id: commitizen
+        name: "commitizen check"
+        entry: cz check
+        language: python
+        additional_dependencies: [commitizen]
+        stages: [commit-msg]
+        pass_filenames: true
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+      - id: detect-private-key
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        args: ["-c", ".yamllint.yaml", "stack/"]
+
+  - repo: local
+    hooks:
+      - id: docker-compose-validate
+        name: docker-compose-validate
+        description: Validate docker-compose file for syntax errors
+        entry: docker compose -f stack/docker-compose.yml config
+        pass_filenames: false
+        language: system
+        types: [yaml]
+
+      - id: trivy-config-scan
+        name: trivy scan (stack/)
+        entry: trivy config
+        args: [stack/]
+        files: ^stack/.*\.(yml|yaml)$
+        pass_filenames: false
+        language: system
+        types: [yaml]

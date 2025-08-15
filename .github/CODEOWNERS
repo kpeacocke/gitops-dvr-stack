@@ -1,0 +1,6 @@
+# GitHub CODEOWNERS file
+
+.github/   @kpeacocke
+stack/     @kpeacocke
+Dockerfile @kpeacocke
+*.yml      @kpeacocke

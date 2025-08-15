@@ -1,0 +1,23 @@
+---
+name: Enforce Commit Format
+
+"on": [pull_request]
+
+jobs:
+  lint-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          commits=$(git log origin/main..HEAD --pretty=format:'%s')
+          if ! echo "$commits" | grep -qE \
+            '^(feat|fix|chore|docs|refactor|style|test)(\(\w+\))?\!?: .+'; then
+            echo "❌ Commit message format violation:"
+            echo "$commits"
+            exit 1
+          fi

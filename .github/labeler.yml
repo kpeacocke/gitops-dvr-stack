@@ -1,0 +1,45 @@
+---
+ci:
+  - pattern: ".github/workflows/**"
+  - pattern: ".github/*.yml"
+  - pattern: ".yamllint.yaml"
+  - pattern: ".pre-commit-config.yaml"
+
+docs:
+  - pattern: "*.md"
+  - pattern: "docs/**"
+  - pattern: "**/README.md"
+  - pattern: "**/CONTRIBUTING.md"
+
+meta:
+  - pattern: ".github/**"
+  - pattern: ".gitignore"
+  - pattern: ".gitattributes"
+  - pattern: ".editorconfig"
+  - pattern: ".tool-versions"
+  - pattern: ".envrc"
+
+stack:
+  - pattern: "stack/**"
+  - pattern: "docker-compose*.yml"
+
+docker:
+  - pattern: "Dockerfile"
+  - pattern: "**/Dockerfile"
+  - pattern: "stack/**/*.env"
+  - pattern: "stack/**/*.dockerfile"
+
+config:
+  - pattern: ".env"
+  - pattern: ".env.*"
+  - pattern: "stack/.env"
+  - pattern: "stack/.env.*"
+  - pattern: "Makefile"
+  - pattern: "justfile"
+
+dependencies:
+  - pattern: "requirements.txt"
+  - pattern: "poetry.lock"
+  - pattern: "pyproject.toml"
+  - pattern: "stack/**/Dockerfile"
+  - pattern: "**/package*.json"

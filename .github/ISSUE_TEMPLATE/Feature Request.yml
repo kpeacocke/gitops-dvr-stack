@@ -1,0 +1,13 @@
+---
+name: ✨ Feature Request
+description: Suggest a new feature
+labels: [enhancement]
+
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: What do you want to see added or improved?
+    validations:
+      required: true

@@ -1,0 +1,56 @@
+# Real env files (ignored)
+.env
+stack/.env
+
+# Allow safe templates
+!.env.sample
+!stack/.env.sample
+
+# Ignore editor or local env variants
+.envrc
+.env.local
+*.env.backup
+
+# 👇 System junk
+.DS_Store
+Thumbs.db
+
+# 👇 Editor/IDE settings
+.vscode/
+.idea/
+*.code-workspace
+
+# 👇 Docker & Compose
+**/docker-compose.override.yml
+**/docker-compose.override.*.yml
+**/.envrc
+**/docker-compose.local.yml
+**/.docker/
+
+# 👇 Python cache (if using tooling or scripts)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+.cache/
+
+# 👇 Node/NPM if future tools are added
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 👇 Log files
+*.log
+
+# 👇 Backup or temp files
+*~
+*.bak
+*.swp
+*.swo
+*.tmp
+
+# 👇 Optional: ignore OS-specific metadata
+ehthumbs.db
+Icon?

@@ -1,0 +1,31 @@
+# Treat all text files as UTF-8 with LF line endings
+* text=auto eol=lf
+
+# Explicitly enforce line endings for common file types
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.sh      text eol=lf
+*.env     text eol=lf
+*.md      text eol=lf
+*.json    text eol=lf
+*.toml    text eol=lf
+*.conf    text eol=lf
+*.gitignore text eol=lf
+*.editorconfig text eol=lf
+Justfile  text eol=lf
+
+# Binary or non-text (no diffing)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.zip     binary
+
+# GitHub linguist overrides (e.g., avoid counting vendored files)
+vendor/** linguist-vendored
+stack/** linguist-detectable=true
+.github/** linguist-generated
