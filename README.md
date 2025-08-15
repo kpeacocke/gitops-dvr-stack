@@ -5,7 +5,6 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 
 ---
 
-
 ## 🚀 Features
 
 - 🔒 All traffic routed through Gluetun VPN
@@ -17,7 +16,6 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 - 🧱 Modular folder structure for growth
 
 ---
-
 
 ## 🧰 Project Setup
 
@@ -63,7 +61,6 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 
 ---
 
-
 ## 🔄 GitOps Flow
 
 All changes must go through a Pull Request:
@@ -76,7 +73,6 @@ feature/* → Pull Request → main
 
 ---
 
-
 ## 🧪 Validate & Deploy Locally
 
 ```bash
@@ -86,7 +82,6 @@ just down       # Tear down
 ```
 
 ---
-
 
 ## 📋 File Layout
 
@@ -103,13 +98,11 @@ gitops-dvr-stack/
 
 ---
 
-
 ## 📄 License
 
 This project is licensed under the [MIT License](./LICENSE).
 
 ---
-
 
 ## 🛡️ Security
 

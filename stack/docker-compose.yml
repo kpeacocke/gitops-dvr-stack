@@ -80,7 +80,7 @@ services:
     restart: always
   transmission:
     image: 'lscr.io/linuxserver/transmission:latest'
-    container_name: transmission 
+    container_name: transmission
     depends_on:
       - gluetun
     network_mode: "service:gluetun"
@@ -88,7 +88,7 @@ services:
       - PUID=1027
       - PGID=100
       - TZ=Australia/Sydney
-      - PASS=REDACTED
+      - PASS=${TRANSMISSION_PASS}
       - FILE__PEERPORT=/volume1/dkrcfg/gluetun/portfwd
     volumes:
       - '/volume1/dkrcfg/transmission:/config'
