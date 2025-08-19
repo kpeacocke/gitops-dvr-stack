@@ -168,16 +168,5 @@ services:
       - '/volume1/dkrcfg/readarr:/config'
       - '/volume1/downloads:/downloads'
     restart: always
-  heimdall:
-    image: 'lscr.io/linuxserver/heimdall:latest'
-    container_name: heimdall
-    network_mode: "host"
-    environment:
-      - PUID=1027
-      - PGID=100
-      - TZ=Australia/Sydney
-    volumes:
-      - '/volume1/dkrcfg/heimdall:/config'
-    restart: always
 networks:
    gluetun: null
