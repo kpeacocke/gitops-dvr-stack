@@ -88,6 +88,7 @@ services:
       - PUID=1027
       - PGID=100
       - TZ=Australia/Sydney
+      - USER=${TRANSMISSION_USER}
       - PASS=${TRANSMISSION_PASS}
       - FILE__PEERPORT=/volume1/dkrcfg/gluetun/portfwd
     volumes:
