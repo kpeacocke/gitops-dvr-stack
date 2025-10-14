@@ -150,7 +150,7 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/Comics:/comics'
+      - '/volumeUSB1/usbshare/comics:/comics'
       - '/volume1/dkrcfg/mylar:/config'
       - '/volume1/downloads:/downloads'
     restart: always
@@ -165,7 +165,7 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/Books:/books'
+      - '//volumeUSB1/usbshare/books:/books'
       - '/volume1/dkrcfg/readarr:/config'
       - '/volume1/downloads:/downloads'
     restart: always
