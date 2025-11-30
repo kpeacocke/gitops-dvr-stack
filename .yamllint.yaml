@@ -1,6 +1,11 @@
 ---
 extends: default
 
+# Ignore Justfiles - they use Just syntax, not YAML
+ignore: |
+  Justfile
+  justfile
+
 rules:
   line-length:
     max: 100

@@ -1,0 +1,31 @@
+---
+name: Deploy to Portainer
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'stack/**'
+      - '.github/workflows/portainer-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  trigger-portainer-webhook:
+    name: Trigger Portainer GitOps Webhook
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trigger Portainer Webhook
+        run: |
+          echo "🚀 Triggering Portainer GitOps deployment..."
+          curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
+          echo "✅ Portainer webhook triggered successfully"
+
+      - name: Deployment notification
+        run: |
+          echo "📦 Stack deployment initiated via Portainer"
+          echo "🔍 Check Portainer UI for deployment status"
+          echo "🌐 Portainer URL: https://portainer.ambitiouscake.com"

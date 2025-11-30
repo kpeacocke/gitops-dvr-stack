@@ -63,22 +63,55 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 
 ## 🔄 GitOps Flow
 
-All changes must go through a Pull Request:
+This stack uses **Portainer GitOps** for automated deployments. All changes must go through a Pull Request:
 
 ```text
-feature/* → Pull Request → main
+feature/* → Pull Request → main → GitHub Actions → Portainer Webhook → Auto Deploy
 ```
+
+When changes are merged to `main`, GitHub Actions automatically triggers the Portainer webhook to pull and deploy the latest stack configuration.
 
 🚫 Direct commits to `main` are disabled by branch protection rules.
 
+For detailed GitOps setup and troubleshooting, see [PORTAINER_GITOPS.md](./docs/PORTAINER_GITOPS.md).
+
 ---
 
-## 🧪 Validate & Deploy Locally
+## 🧪 Validate & Deploy
 
 ```bash
-just validate   # Validate the stack
-just deploy     # Deploy stack
-just down       # Tear down
+just validate           # Validate the stack
+just deploy             # Deploy stack locally
+just down               # Tear down local stack
+just portainer-deploy   # Trigger Portainer GitOps deployment
+just portainer-webhook  # Show Portainer webhook URL
+```
+
+### Local Development
+
+For local testing before pushing to production via Portainer:
+
+```bash
+# Test changes locally
+cp stack/.env.sample stack/.env
+# Edit stack/.env with your values
+just validate
+just deploy
+```
+
+### Production Deployment
+
+Production deployments are handled automatically via Portainer GitOps:
+
+1. Make changes in a feature branch
+2. Create Pull Request to `main`
+3. After approval and merge, GitHub Actions triggers Portainer
+4. Portainer pulls changes and redeploys stack
+
+Alternatively, manually trigger deployment:
+
+```bash
+just portainer-deploy
 ```
 
 ---

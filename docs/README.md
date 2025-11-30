@@ -6,6 +6,7 @@ This directory contains comprehensive documentation for the GitOps DVR Stack.
 
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture, component overview, and design decisions
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Step-by-step deployment guide, configuration, and troubleshooting
+- **[PORTAINER_GITOPS.md](./PORTAINER_GITOPS.md)** - Portainer GitOps integration and automated deployments
 
 ## Quick Links
 
