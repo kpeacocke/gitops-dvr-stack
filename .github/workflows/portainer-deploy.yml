@@ -1,7 +1,7 @@
 ---
 name: Deploy to Portainer
 
-on:
+"on":
   push:
     branches:
       - main
@@ -21,7 +21,8 @@ jobs:
       - name: Trigger Portainer Webhook
         run: |
           echo "🚀 Triggering Portainer GitOps deployment..."
-          curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
+          curl -X POST \
+            https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
           echo "✅ Portainer webhook triggered successfully"
 
       - name: Deployment notification
