@@ -1,20 +1,26 @@
 # CODEOWNERS file for automatic PR review assignment
-# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# Default owners for everything in the repo
+## Documentation: <https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners>
+
+## Default owners for everything in the repo
+
 * @kpeacocke
 
-# Docker compose configuration
+## Docker compose configuration
+
 /stack/ @kpeacocke
 
-# CI/CD and automation
+## CI/CD and automation
+
 /.github/ @kpeacocke
 /Justfile @kpeacocke
 
-# Documentation
+## Documentation
+
 *.md @kpeacocke
 /docs/ @kpeacocke
 
-# Security and policy files
+## Security and policy files
+
 /SECURITY.md @kpeacocke
 /.github/workflows/ @kpeacocke

@@ -1,9 +1,13 @@
 # Trivy ignore file for known and accepted vulnerabilities
-# Format: CVE-ID or vulnerability ID per line
-# Documentation: https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/
 
-# Example:
-# CVE-2021-12345
-# GHSA-xxxx-yyyy-zzzz
+## Format: CVE-ID or vulnerability ID per line
 
-# Add specific vulnerabilities to ignore below with justification comments
+## Documentation: <https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/>
+
+## Example
+
+## CVE-2021-12345
+
+## GHSA-xxxx-yyyy-zzzz
+
+## Add specific vulnerabilities to ignore below with justification comments

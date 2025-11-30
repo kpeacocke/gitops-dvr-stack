@@ -8,7 +8,7 @@ The GitOps DVR Stack is a Docker Compose-based media automation platform that ro
 
 ## Architecture Diagram
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        Host Network                          │
 │                                                              │
@@ -83,7 +83,7 @@ All services except Heimdall use `network_mode: "service:gluetun"`, which means:
 
 ## Data Flow
 
-```
+```text
 Internet ← VPN → Gluetun → Indexers → Downloaders → Media Managers → Storage
 ```
 

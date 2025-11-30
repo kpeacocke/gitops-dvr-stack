@@ -64,23 +64,27 @@ This document summarizes the configuration and documentation files added to the 
 ## File Categories by Purpose
 
 ### Security & Compliance
+
 - `.trivyignore` - Security scan exceptions
 - `SECURITY.md` - Security policies
 - `.git/hooks/pre-push` - Pre-push validation
 - `.github/instructions/snyk_rules.instructions.md` - Snyk security rules
 
 ### Development Workflow
+
 - `.editorconfig` - Editor consistency
 - `.prettierrc` - Code formatting
 - `.pre-commit-config.yaml` - Automated checks
 - `Justfile` - Task automation
 
 ### Container Management
+
 - `stack/docker-compose.yml` - Service definitions
 - `.dockerignore` - Build context exclusions
 - `stack/.env.sample` - Environment configuration
 
 ### Documentation & Collaboration
+
 - `README.md` - Main documentation
 - `docs/` - Extended documentation
 - `CONTRIBUTING.md` - Contribution guide
@@ -88,6 +92,7 @@ This document summarizes the configuration and documentation files added to the 
 - `CODEOWNERS` - Review assignments
 
 ### Version Control
+
 - `.gitignore` - Ignore patterns
 - `.gitattributes` - Git attributes
 - `CHANGELOG.md` - Version history
@@ -97,6 +102,7 @@ This document summarizes the configuration and documentation files added to the 
 ### Environment Configuration
 
 **.env.sample** provides:
+
 - VPN credentials setup
 - User/group ID configuration
 - Timezone settings
@@ -106,6 +112,7 @@ This document summarizes the configuration and documentation files added to the 
 ### Git Configuration
 
 **.gitignore** covers:
+
 - Environment files (with template exceptions)
 - OS-specific files (macOS, Windows, Linux)
 - Editor/IDE directories
@@ -115,6 +122,7 @@ This document summarizes the configuration and documentation files added to the 
 - Media and download directories
 
 **.gitattributes** ensures:
+
 - Consistent LF line endings
 - Proper diff strategies for file types
 - Binary file handling
@@ -123,6 +131,7 @@ This document summarizes the configuration and documentation files added to the 
 ### Code Quality
 
 **.editorconfig** enforces:
+
 - UTF-8 encoding
 - LF line endings
 - Consistent indentation (2 spaces default)
@@ -130,6 +139,7 @@ This document summarizes the configuration and documentation files added to the 
 - Trailing whitespace trimming
 
 **.prettierrc** configures:
+
 - Semicolons enabled
 - Single quotes for JS/TS
 - 100 character line width
@@ -139,6 +149,7 @@ This document summarizes the configuration and documentation files added to the 
 ### Documentation Structure
 
 **docs/** includes:
+
 - Architecture diagrams and explanations
 - Step-by-step deployment instructions
 - Configuration examples
@@ -148,6 +159,7 @@ This document summarizes the configuration and documentation files added to the 
 ### GitHub Templates
 
 Issue and PR templates ensure:
+
 - Consistent bug reports
 - Well-structured feature requests
 - Complete PR descriptions
@@ -178,21 +190,25 @@ Issue and PR templates ensure:
 ## Integration Points
 
 ### Git Hooks
+
 - Pre-commit: Runs linting, validation, security scans
 - Pre-push: Comprehensive validation before push
 
 ### CI/CD Ready
+
 - Pre-commit config can be run in CI
 - Docker Compose validation
 - Trivy security scanning
 - YAML linting
 
 ### Security Scanning
+
 - Snyk integration via instructions
 - Trivy configuration
 - Security policy documentation
 
 ### Development Tools
+
 - direnv for environment management
 - Just for task automation
 - Pre-commit for quality gates
@@ -218,7 +234,7 @@ For developers new to the project:
 
 ## File Relationships
 
-```
+```text
 Root
 ├── Configuration Files → Control project behavior
 ├── Documentation → Explain project
@@ -231,6 +247,7 @@ Root
 ## Compliance
 
 All files follow:
+
 - MIT License terms
 - Code of Conduct standards
 - Security policy requirements
@@ -239,6 +256,7 @@ All files follow:
 ## Support
 
 For questions about specific files, see:
+
 - General: [README.md](../README.md)
 - Deployment: [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md)
 - Contributing: [CONTRIBUTING.md](../CONTRIBUTING.md)
