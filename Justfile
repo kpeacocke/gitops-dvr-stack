@@ -17,4 +17,3 @@ portainer-deploy:
 portainer-webhook:
   @echo "Portainer Webhook URL:"
   @echo "https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68"
-

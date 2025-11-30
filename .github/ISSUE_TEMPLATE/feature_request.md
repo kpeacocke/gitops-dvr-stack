@@ -28,17 +28,17 @@ assignees: ''
 
 <!-- Describe how this feature would be used -->
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Benefits
 
 <!-- What benefits would this feature provide? -->
 
-- 
-- 
-- 
+-
+-
+-
 
 ## Implementation Ideas
 
