@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion Forum
+    url: https://github.com/kpeacocke/gitops-dvr-stack/discussions
+    about: Ask questions and discuss with the community
+  - name: 📖 Documentation
+    url: https://github.com/kpeacocke/gitops-dvr-stack#readme
+    about: Read the project documentation
+  - name: 🔒 Security Issue
+    url: https://github.com/kpeacocke/gitops-dvr-stack/security/advisories/new
+    about: Report a security vulnerability privately

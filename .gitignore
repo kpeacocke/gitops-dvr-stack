@@ -54,3 +54,40 @@ yarn-error.log*
 # 👇 Optional: ignore OS-specific metadata
 ehthumbs.db
 Icon?
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
+
+# Volume mount directories (local development)
+volumes/
+data/
+dkrcfg/
+downloads/
+
+# Media directories (if mounted locally)
+TV/
+Movies/
+Music/
+books/
+comics/
+
+# Gluetun port forwarding state
+gluetun/portfwd
+
+# Coverage reports
+coverage/
+*.cover
+.coverage
+.coverage.*
+htmlcov/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/

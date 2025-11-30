@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+
+# Environment
+.env
+.env.*
+.envrc
+.envrc.local
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# CI/CD
+.github/
+
+# Build artifacts
+dist/
+build/
+
+# Dependencies (if applicable)
+node_modules/
+
+# Test files
+tests/
+*.test.*
