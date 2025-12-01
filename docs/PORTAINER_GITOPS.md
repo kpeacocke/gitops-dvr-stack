@@ -35,6 +35,7 @@ Portainer GitOps Pull
 The webhook URL is stored as a GitHub secret `PORTAINER_WEBHOOK_URL` for security.
 
 **Format:**
+
 ```text
 https://portainer.ambitiouscake.com/api/stacks/webhooks/{WEBHOOK_ID}
 ```
