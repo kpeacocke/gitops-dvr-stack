@@ -126,7 +126,7 @@ services:
       - '/volume1/downloads:/downloads'
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9091"]
+      test: ["CMD-SHELL", "curl -f -u \"$$USER:$$PASS\" http://localhost:9091 || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
