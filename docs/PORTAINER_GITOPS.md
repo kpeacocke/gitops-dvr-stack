@@ -33,7 +33,7 @@ Portainer GitOps Pull
 ### Webhook URL
 
 ```text
-https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
+https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
 ```
 
 ### Trigger Conditions
@@ -139,7 +139,7 @@ on:
 
 ```bash
 # Trigger webhook directly
-curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
+curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
 ```
 
 #### Via Portainer UI
@@ -312,7 +312,7 @@ If you want to secure the webhook further:
   run: |
     curl -X POST \
       -H "Authorization: Bearer ${{ secrets.PORTAINER_TOKEN }}" \
-      https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
+      https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
 ```
 
 ### Multiple Environments
@@ -392,7 +392,7 @@ Add Portainer commands to Justfile:
 ```makefile
 # Trigger Portainer deployment
 portainer-deploy:
-    curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
+    curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
 
 # Force pull and redeploy
 portainer-force:
