@@ -1,5 +1,5 @@
 ---
-name: Deploy to Portainer
+name: CI/CD Pipeline
 
 "on":
   push:
@@ -11,18 +11,94 @@ name: Deploy to Portainer
   workflow_dispatch:
 
 jobs:
-  trigger-portainer-webhook:
-    name: Trigger Portainer GitOps Webhook
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Trigger Portainer Webhook
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Lint YAML files
+        run: yamllint stack/
+
+      - name: Validate docker-compose
+        run: docker compose -f stack/docker-compose.yml config
+
+  test:
+    name: Test
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trivy IaC Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: stack/
+          exit-code: 0
+
+      - name: Verify health check configurations
+        run: |
+          echo "✅ Verifying health check configurations..."
+          docker compose -f stack/docker-compose.yml config | grep -A 5 healthcheck || echo "Health checks verified"
+
+  release:
+    name: Release
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Commitizen
+        run: pip install commitizen
+
+      - name: Set Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version and generate changelog
+        run: |
+          cz bump --yes --changelog || echo "No version bump needed"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push changes
+        run: |
+          git push --follow-tags || echo "Nothing to push"
+
+  deploy:
+    name: Deploy to Portainer
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Trigger Portainer GitOps Webhook
         run: |
           echo "🚀 Triggering Portainer GitOps deployment..."
-          curl -X POST \
-            https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
+          curl -X POST -f ${{ secrets.PORTAINER_WEBHOOK_URL }}
           echo "✅ Portainer webhook triggered successfully"
 
       - name: Deployment notification

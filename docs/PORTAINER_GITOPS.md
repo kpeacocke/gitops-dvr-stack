@@ -32,9 +32,14 @@ Portainer GitOps Pull
 
 ### Webhook URL
 
+The webhook URL is stored as a GitHub secret `PORTAINER_WEBHOOK_URL` for security.
+
+**Format:**
 ```text
-https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
+https://portainer.ambitiouscake.com/api/stacks/webhooks/{WEBHOOK_ID}
 ```
+
+**Setup:** See [GitHub Configuration](#github-configuration) section below.
 
 ### Trigger Conditions
 
@@ -104,11 +109,14 @@ on:
 
 1. **Add Workflow File**
    - Already created at `.github/workflows/portainer-deploy.yml`
-   - Update webhook URL if needed
+   - Uses GitHub secret for webhook URL
 
-2. **Repository Settings** (Optional)
-   - Add webhook URL as GitHub secret if you want to protect it
-   - Modify workflow to use `${{ secrets.PORTAINER_WEBHOOK_URL }}`
+2. **Repository Secrets** (Required)
+   - Go to: `Settings` > `Secrets and variables` > `Actions`
+   - Click `New repository secret`
+   - Name: `PORTAINER_WEBHOOK_URL`
+   - Value: `https://portainer.ambitiouscake.com/api/stacks/webhooks/{YOUR_WEBHOOK_ID}`
+   - Click `Add secret`
 
 3. **Branch Protection** (Recommended)
    - Enable branch protection for `main`
@@ -138,8 +146,8 @@ on:
 #### Via Command Line
 
 ```bash
-# Trigger webhook directly
-curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
+# Trigger webhook directly (use your actual webhook URL)
+curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/{YOUR_WEBHOOK_ID}
 ```
 
 #### Via Portainer UI
@@ -307,12 +315,10 @@ docker service ls
 If you want to secure the webhook further:
 
 ```yaml
-# In workflow file
+# The workflow already uses the secret
 - name: Trigger Portainer Webhook
   run: |
-    curl -X POST \
-      -H "Authorization: Bearer ${{ secrets.PORTAINER_TOKEN }}" \
-      https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
+    curl -X POST -f ${{ secrets.PORTAINER_WEBHOOK_URL }}
 ```
 
 ### Multiple Environments
@@ -390,9 +396,9 @@ docker service update --rollback service-name
 Add Portainer commands to Justfile:
 
 ```makefile
-# Trigger Portainer deployment
-portainer-deploy:
-    curl -X POST https://portainer.ambitiouscake.com/api/stacks/webhooks/f7233af8-8e34-4422-93d2-c89089211dcc
+# Show Portainer webhook setup instructions
+portainer-webhook:
+    just portainer-webhook
 
 # Force pull and redeploy
 portainer-force:
