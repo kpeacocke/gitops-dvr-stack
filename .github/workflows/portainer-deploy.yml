@@ -22,7 +22,7 @@ jobs:
         run: |
           echo "🚀 Triggering Portainer GitOps deployment..."
           curl -X POST \
-            https://portainer.ambitiouscake.com/api/stacks/webhooks/b12d5a0d-6786-4a84-b5e1-41cf21ce1f68
+            https://portainer.ambitiouscake.com/api/stacks/webhooks/4f7abd30-2e9e-48b4-959d-a017254bf532
           echo "✅ Portainer webhook triggered successfully"
 
       - name: Deployment notification
