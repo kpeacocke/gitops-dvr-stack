@@ -187,7 +187,7 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/Music:/music'
+      - '/volumeUSB2/usbshare:/music'
       - '/volume1/dkrcfg/lidarr:/config'
       - '/volume1/downloads:/downloads'
     restart: always
