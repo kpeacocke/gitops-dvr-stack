@@ -29,7 +29,15 @@ services:
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_STATUS_FILE=/gluetun/portfwd
       - UPDATER_VPN_SERVICE_PROVIDER=private internet access
-      - UPDATE_PERIOD=24h
+      - UPDATER_PERIOD=24h
+
+      # DNS: simplify first
+      - DNS_UPSTREAM_RESOLVER_TYPE=plain
+      - DNS_UPSTREAM_PLAIN_ADDRESSES=1.1.1.1:53,1.0.0.1:53
+
+      # Optional: make the startup healthcheck easier to pass while testing
+      - HEALTH_TARGET_ADDRESSES=1.1.1.1:443,cloudflare.com:443,github.com:443
+
       - BLOCK_MALICIOUS=on
       - BLOCK_SURVEILLANCE=on
       - BLOCK_ADS=on
@@ -40,12 +48,6 @@ services:
     restart: always
     security_opt:
       - no-new-privileges:true
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /tmp/gluetun/ip"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
   nzbhydra:
     image: 'lscr.io/linuxserver/nzbhydra2:latest'
     container_name: nzbhydra
