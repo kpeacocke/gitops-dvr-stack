@@ -61,20 +61,27 @@ The GitOps DVR Stack is a Docker Compose-based media automation platform that ro
 - **Lidarr**: Music automation
 - **Readarr**: Book automation
 - **Mylar**: Comic book automation
+- **Bazarr**: Subtitles automation for Sonarr/Radarr
 
 ### Indexers
 
 - **NZBHydra2**: Usenet indexer aggregator
 - **Jackett**: Torrent indexer proxy
+- **Prowlarr**: Indexer manager for Usenet and torrents
 
 ### Downloaders
 
 - **SABnzbd**: Usenet downloader
 - **Transmission**: Torrent downloader with VPN port forwarding
 
+### Maintenance
+
+- **Recyclarr**: Syncs quality profiles and custom formats to Sonarr/Radarr
+- **Unpackerr**: Extracts archived downloads for *arr apps
+
 ## Network Architecture
 
-All services except Heimdall use `network_mode: "service:gluetun"`, which means:
+All services use `network_mode: "service:gluetun"`, which means:
 
 1. They share the Gluetun container's network namespace
 2. All their traffic is automatically routed through the VPN

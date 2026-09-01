@@ -15,7 +15,8 @@ services:
       - 9117:9117/tcp
       - 8090:8090/tcp
       - 5076:5076/tcp
-      - 444:444/tcp
+      - 9696:9696/tcp
+      - 6767:6767/tcp
       - 8989:8989/tcp
       - 9091:9091/tcp
     environment:
@@ -36,7 +37,7 @@ services:
       - HTTPPROXY=off
       - SHADOWSOCKS=off
     volumes:
-      - '/volume1/dkrcfg/gluetun:/gluetun'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/gluetun:/gluetun'
     restart: always
     security_opt:
       - no-new-privileges:true
@@ -58,7 +59,7 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/dkrcfg/nzbhydra:/config'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/nzbhydra:/config'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5076"]
@@ -78,10 +79,30 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/dkrcfg/jackett:/config'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/jackett:/config'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9117"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+  prowlarr:
+    image: 'lscr.io/linuxserver/prowlarr:latest'
+    container_name: prowlarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/prowlarr:/config'
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9696"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -98,8 +119,8 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/dkrcfg/sabnzbd:/config'
-      - '/volume1/downloads:/downloads'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/sabnzbd:/config'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
@@ -122,8 +143,8 @@ services:
       - PASS=${TRANSMISSION_PASS}
       - FILE__PEERPORT=/volume1/dkrcfg/gluetun/portfwd
     volumes:
-      - '/volume1/dkrcfg/transmission:/config'
-      - '/volume1/downloads:/downloads'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/transmission:/config'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "curl -f -u \"$$USER:$$PASS\" http://localhost:9091 || exit 1"]
@@ -143,9 +164,9 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/TV:/tv'
-      - '/volume1/dkrcfg/sonarr:/config'
-      - '/volume1/downloads:/downloads'
+      - '${TV_PATH:?Set TV_PATH in .env}:/tv'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/sonarr:/config'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8989/ping"]
@@ -165,12 +186,34 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volume1/Movies:/movies'
-      - '/volume1/dkrcfg/radarr:/config'
-      - '/volume1/downloads:/downloads'
+      - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/radarr:/config'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7878/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+  bazarr:
+    image: 'lscr.io/linuxserver/bazarr:latest'
+    container_name: bazarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '${TV_PATH:?Set TV_PATH in .env}:/tv'
+      - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/bazarr:/config'
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6767"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -187,9 +230,9 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volumeUSB2/usbshare:/music'
-      - '/volume1/dkrcfg/lidarr:/config'
-      - '/volume1/downloads:/downloads'
+      - '${MUSIC_PATH:?Set MUSIC_PATH in .env}:/music'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/lidarr:/config'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8686/ping"]
@@ -209,9 +252,9 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '/volumeUSB1/usbshare/comics:/comics'
-      - '/volume1/dkrcfg/mylar:/config'
-      - '/volume1/downloads:/downloads'
+      - '${COMICS_PATH:?Set COMICS_PATH in .env}:/comics'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/mylar:/config'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8090"]
@@ -231,9 +274,9 @@ services:
       - PGID=100
       - TZ=Australia/Sydney
     volumes:
-      - '//volumeUSB1/usbshare/books:/books'
-      - '/volume1/dkrcfg/readarr:/config'
-      - '/volume1/downloads:/downloads'
+      - '${BOOKS_PATH:?Set BOOKS_PATH in .env}:/books'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/readarr:/config'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8787/ping"]
@@ -241,5 +284,41 @@ services:
       timeout: 10s
       retries: 3
       start_period: 90s
+  recyclarr:
+    image: 'lscr.io/linuxserver/recyclarr:latest'
+    container_name: recyclarr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/recyclarr:/config'
+    restart: unless-stopped
+  unpackerr:
+    image: 'golift/unpackerr:latest'
+    container_name: unpackerr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=Australia/Sydney
+      - UN_SONARR_0_URL=http://localhost:8989
+      - UN_SONARR_0_API_KEY=${SONARR_API_KEY}
+      - UN_RADARR_0_URL=http://localhost:7878
+      - UN_RADARR_0_API_KEY=${RADARR_API_KEY}
+      - UN_LIDARR_0_URL=http://localhost:8686
+      - UN_LIDARR_0_API_KEY=${LIDARR_API_KEY}
+      - UN_READARR_0_URL=http://localhost:8787
+      - UN_READARR_0_API_KEY=${READARR_API_KEY}
+    volumes:
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
+    restart: always
 networks:
   gluetun: null

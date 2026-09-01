@@ -9,9 +9,11 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 
 - 🔒 All traffic routed through Gluetun VPN
 - � Automated media management: Sonarr, Radarr, Lidarr, Readarr, Mylar
-- � Indexers: NZBHydra2, Jackett
+- � Indexers: NZBHydra2, Jackett, Prowlarr
 - ⬇️ Downloaders: Transmission, SABnzbd
-- 🗂️ Heimdall dashboard for easy access
+- � Subtitles: Bazarr
+- � Profile sync: Recyclarr
+- 📦 Archive extraction: Unpackerr
 - 🧪 Justfile for CLI tasks
 - 🧱 Modular folder structure for growth
 
@@ -148,15 +150,18 @@ Please review [SECURITY.md](./SECURITY.md) and report concerns to [krpeacocke@gm
 | Gluetun        | VPN gateway (PIA)                 | 7878, 8080, etc |
 | NZBHydra2      | Usenet indexer aggregator         | 5076         |
 | Jackett        | Torrent indexer                   | 9117         |
+| Prowlarr       | Indexer manager                   | 9696         |
 | SABnzbd        | Usenet downloader                 | 8080         |
 | Transmission   | Torrent downloader                | 9091         |
 | Sonarr         | TV automation                     | 8989         |
 | Radarr         | Movie automation                  | 7878         |
+| Bazarr         | Subtitles automation              | 6767         |
 | Lidarr         | Music automation                  | 8686         |
 | Mylar          | Comics automation                 | 8090         |
 | Readarr        | Book automation                   | 8787         |
-| Heimdall       | Dashboard                         | 444          |
+| Recyclarr      | Quality profile sync              | N/A          |
+| Unpackerr      | Archive extraction                | N/A          |
 
-All services (except Heimdall) are routed through Gluetun VPN for privacy.
+All services are routed through Gluetun VPN for privacy.
 
 ---
