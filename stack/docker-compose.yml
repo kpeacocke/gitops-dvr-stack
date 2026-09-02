@@ -303,7 +303,7 @@ services:
       retries: 3
       start_period: 90s
   recyclarr:
-    image: 'ghcr.io/recyclarr/recyclarr:7'
+    image: 'ghcr.io/recyclarr/recyclarr:8'
     container_name: recyclarr
     depends_on:
       gluetun:
@@ -314,8 +314,11 @@ services:
       - PGID=100
       - TZ=${TZ:-Australia/Sydney}
       - CRON_SCHEDULE=0 4 * * *
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/recyclarr:/config'
+      - './config/recyclarr/configs:/config/configs:ro'
     restart: unless-stopped
     logging: *default-logging
     security_opt:
