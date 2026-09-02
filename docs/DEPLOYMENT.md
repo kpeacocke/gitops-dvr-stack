@@ -29,8 +29,9 @@ This guide walks you through deploying the GitOps DVR Stack.
    ```bash
    OPENVPN_USER=your_vpn_username
    OPENVPN_PASSWORD=your_vpn_password
-   TRANSMISSION_USER=admin
-   TRANSMISSION_PASS=change_me_please
+   SONARR_API_KEY=
+   RADARR_API_KEY=
+   LIDARR_API_KEY=
    ```
 
 3. **Adjust storage paths** (if needed)
@@ -168,7 +169,8 @@ After deployment, access services at:
 | Mylar         | http://your-host:8090            | None (set on first run) |
 | Prowlarr      | http://your-host:9696            | None (set on first run) |
 | SABnzbd       | http://your-host:8080            | None (set on first run) |
-| Transmission  | http://your-host:9091            | From .env file |
+| qBittorrent   | http://your-host:8081            | Temp password in `docker logs qbittorrent` |
+| Cleanuparr    | http://your-host:11011           | None (set on first run) |
 
 ## Post-Deployment Configuration
 
@@ -186,10 +188,12 @@ After deployment, access services at:
 - Configure categories
 - Set download paths: `/downloads/complete` and `/downloads/incomplete`
 
-**Transmission** (http://your-host:9091)
-- Verify port forwarding is working
+**qBittorrent** (http://your-host:8081)
+- Retrieve the first-run temporary password: `docker logs qbittorrent`
+- Set a permanent username/password under Tools → Options → Web UI
+- Enable "Bypass authentication for clients on localhost" — gluetun needs this to
+  push the forwarded VPN port in automatically
 - Configure download path: `/downloads/torrents`
-- Enable authentication
 
 ### 3. Configure Media Managers
 
@@ -202,7 +206,7 @@ For each *arr service (Sonarr, Radarr, etc.):
 2. **Add Download Clients**
    - Settings → Download Clients → Add
    - Add SABnzbd with API key
-   - Add Transmission with credentials
+   - Add qBittorrent with its Web UI credentials
 
 3. **Configure Media Management**
    - Settings → Media Management
@@ -242,7 +246,8 @@ docker exec gluetun wget -qO- https://api.ipify.org
 # Check forwarded port
 cat /volume1/dkrcfg/gluetun/portfwd
 
-# Set this port in Transmission settings
+# Gluetun pushes this into qBittorrent automatically; confirm it took effect
+# under Tools > Options > Connection > Listening Port
 ```
 
 ## Troubleshooting

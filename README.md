@@ -10,10 +10,11 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 - 🔒 All traffic routed through Gluetun VPN
 - � Automated media management: Sonarr, Radarr, Lidarr, LazyLibrarian, Mylar
 - � Indexers: Prowlarr (+ FlareSolverr for Cloudflare-protected trackers)
-- ⬇️ Downloaders: Transmission, SABnzbd
+- ⬇️ Downloaders: qBittorrent, SABnzbd
 - � Subtitles: Bazarr
 - � Profile sync: Recyclarr
 - 📦 Archive extraction: Unpackerr
+- 🧹 Stalled/failed download cleanup: Cleanuparr
 - 🧪 Justfile for CLI tasks
 - 🧱 Modular folder structure for growth
 
@@ -151,7 +152,7 @@ Please review [SECURITY.md](./SECURITY.md) and report concerns to [krpeacocke@gm
 | Prowlarr       | Indexer manager                   | 9696         |
 | FlareSolverr   | Cloudflare challenge solver       | 8191 (internal) |
 | SABnzbd        | Usenet downloader                 | 8080         |
-| Transmission   | Torrent downloader                | 9091         |
+| qBittorrent    | Torrent downloader                | 8081         |
 | Sonarr         | TV automation                     | 8989         |
 | Radarr         | Movie automation                  | 7878         |
 | Bazarr         | Subtitles automation              | 6767         |
@@ -159,6 +160,7 @@ Please review [SECURITY.md](./SECURITY.md) and report concerns to [krpeacocke@gm
 | Mylar          | Comics automation                 | 8090         |
 | LazyLibrarian  | Book/audiobook automation         | 5299         |
 | Recyclarr      | Quality profile sync              | N/A          |
+| Cleanuparr     | Stalled/failed download cleanup   | 11011        |
 | Unpackerr      | Archive extraction                | N/A          |
 
 All services are routed through Gluetun VPN for privacy.

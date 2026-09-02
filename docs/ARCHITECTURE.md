@@ -29,8 +29,8 @@ The GitOps DVR Stack is a Docker Compose-based media automation platform that ro
 │  │                                                      │    │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐         │    │
 │  │  │  Flare   │  │ SABnzbd  │  │Transmis- │         │    │
-│  │  │ Solverr  │  │ :8080    │  │sion :9091│         │    │
-│  │  │ :8191    │  │          │  │          │         │    │
+│  │  │ Solverr  │  │ :8080    │  │qBittorren│         │    │
+│  │  │ :8191    │  │          │  │t :8081   │         │    │
 │  │  └──────────┘  └──────────┘  └──────────┘         │    │
 │  │                                                      │    │
 │  └────────────────────────────────────────────────────┘    │
@@ -73,12 +73,13 @@ The GitOps DVR Stack is a Docker Compose-based media automation platform that ro
 ### Downloaders
 
 - **SABnzbd**: Usenet downloader
-- **Transmission**: Torrent downloader with VPN port forwarding
+- **qBittorrent**: Torrent downloader; gluetun pushes the forwarded VPN port into it on every reconnect via `VPN_PORT_FORWARDING_UP_COMMAND`
 
 ### Maintenance
 
 - **Recyclarr**: Syncs quality profiles and custom formats to Sonarr/Radarr
 - **Unpackerr**: Extracts archived downloads for *arr apps
+- **Cleanuparr**: Removes stalled, failed, and malicious downloads from the queue and triggers a re-search
 
 ## Network Architecture
 

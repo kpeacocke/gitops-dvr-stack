@@ -69,7 +69,8 @@ docker compose -f stack/docker-compose.yml up -d
 | Mylar         | <http://localhost:8090>        | 8090 |
 | Prowlarr      | <http://localhost:9696>        | 9696 |
 | SABnzbd       | <http://localhost:8080>        | 8080 |
-| Transmission  | <http://localhost:9091>        | 9091 |
+| qBittorrent   | <http://localhost:8081>        | 8081 |
+| Cleanuparr    | <http://localhost:11011>       | 11011 |
 
 ## 🔍 Monitoring
 
@@ -238,9 +239,8 @@ OPENVPN_USER=your_username
 OPENVPN_PASSWORD=your_password
 SERVER_REGIONS=Switzerland
 
-# Transmission
-TRANSMISSION_USER=admin
-TRANSMISSION_PASS=change_me
+# qBittorrent credentials are not set via .env; retrieve the first-run
+# password with: docker logs qbittorrent
 
 # System
 PUID=1027

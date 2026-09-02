@@ -42,7 +42,7 @@ This directory contains comprehensive documentation for the GitOps DVR Stack.
 - [Prowlarr Wiki](https://wiki.servarr.com/prowlarr)
 - [FlareSolverr Documentation](https://github.com/FlareSolverr/FlareSolverr)
 - [SABnzbd Documentation](https://sabnzbd.org/wiki/)
-- [Transmission Documentation](https://transmissionbt.com/)
+- [qBittorrent Documentation](https://github.com/qbittorrent/qBittorrent/wiki)
 
 ## Contributing to Documentation
 

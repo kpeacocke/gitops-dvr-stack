@@ -22,7 +22,8 @@ services:
       - 9696:9696/tcp
       - 6767:6767/tcp
       - 8989:8989/tcp
-      - 9091:9091/tcp
+      - 8081:8081/tcp
+      - 11011:11011/tcp
       - 5299:5299/tcp
     environment:
       - PUID=1027
@@ -34,6 +35,10 @@ services:
       - SERVER_REGIONS=Switzerland
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_STATUS_FILE=/gluetun/portfwd
+      # Pushes each new forwarded port into qBittorrent; requires "Bypass authentication
+      # for clients on localhost" to be enabled in the qBittorrent Web UI.
+      # Body is percent-encoded to avoid nested quoting inside the shell command.
+      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'wget -qO- --post-data=json=%7B%22listen_port%22%3A{{PORTS}}%7D http://127.0.0.1:8081/api/v2/app/setPreferences'
       - UPDATER_VPN_SERVICE_PROVIDER=private internet access
       - UPDATER_PERIOD=24h
 
@@ -122,9 +127,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-  transmission:
-    image: 'lscr.io/linuxserver/transmission:latest'
-    container_name: transmission
+  qbittorrent:
+    image: 'lscr.io/linuxserver/qbittorrent:latest'
+    container_name: qbittorrent
     depends_on:
       gluetun:
         condition: service_healthy
@@ -133,19 +138,16 @@ services:
       - PUID=1027
       - PGID=100
       - TZ=${TZ:-Australia/Sydney}
-      - USER=${TRANSMISSION_USER}
-      - PASS=${TRANSMISSION_PASS}
-      - FILE__PEERPORT=/gluetun/portfwd
+      - WEBUI_PORT=8081
     volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/transmission:/config'
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/gluetun:/gluetun:ro'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/qbittorrent:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
     restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -u \"$$USER:$$PASS\" http://localhost:9091 || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -353,5 +355,29 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+  cleanuparr:
+    image: 'ghcr.io/cleanuparr/cleanuparr:latest'
+    container_name: cleanuparr
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=1027
+      - PGID=100
+      - TZ=${TZ:-Australia/Sydney}
+      - PORT=11011
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/cleanuparr:/config'
+    restart: always
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 networks:
   gluetun: null

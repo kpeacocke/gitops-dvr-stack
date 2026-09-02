@@ -55,11 +55,11 @@ healthcheck:
 - Radarr: `http://localhost:7878/ping`
 - Lidarr: `http://localhost:8686/ping`
 
-### Download Clients (Transmission, SABnzbd)
+### Download Clients (qBittorrent, SABnzbd)
 
 ```yaml
 healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:9091"]
+  test: ["CMD", "curl", "-f", "http://localhost:8081"]
   interval: 30s
   timeout: 10s
   retries: 3
@@ -71,7 +71,7 @@ healthcheck:
 - Checks if web UI is accessible
 - Uses root endpoint (no specific health endpoint available)
 - Medium start period (60s) for service initialization
-- Transmission: port 9091, SABnzbd: port 8080
+- qBittorrent: port 8081, SABnzbd: port 8080
 
 ### Web UI Services (Prowlarr, Mylar, LazyLibrarian)
 
@@ -273,8 +273,8 @@ docker exec sonarr curl -f http://localhost:8989/ping
 # Test Radarr
 docker exec radarr curl -f http://localhost:7878/ping
 
-# Test Transmission
-docker exec transmission curl -f http://localhost:9091
+# Test qBittorrent
+docker exec qbittorrent curl -f http://localhost:8081
 
 # Test Prowlarr
 docker exec prowlarr curl -f http://localhost:9696
@@ -392,10 +392,11 @@ healthcheck:
 | Sonarr        | 8989 | /ping                   | GET    | {"status":"OK"}         |
 | Radarr        | 7878 | /ping                   | GET    | {"status":"OK"}         |
 | Lidarr        | 8686 | /ping                   | GET    | {"status":"OK"}         |
-| Transmission  | 9091 | /                       | GET    | HTML (web UI)           |
+| qBittorrent   | 8081 | /                       | GET    | HTML (web UI)           |
 | SABnzbd       | 8080 | /                       | GET    | HTML (web UI)           |
 | Prowlarr      | 9696 | /                       | GET    | HTML (web UI)           |
 | FlareSolverr  | 8191 | /health                 | GET    | {"status":"ok"}         |
+| Cleanuparr    | 11011 | /health                | GET    | HTTP 200                |
 | LazyLibrarian | 5299 | /                       | GET    | HTML (web UI)           |
 | Mylar         | 8090 | /                       | GET    | HTML (web UI)           |
 | Recyclarr     | n/a  | `pgrep crond`           | exec   | exit 0                  |
