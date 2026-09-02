@@ -65,10 +65,9 @@ docker compose -f stack/docker-compose.yml up -d
 | Sonarr        | <http://localhost:8989>        | 8989 |
 | Radarr        | <http://localhost:7878>        | 7878 |
 | Lidarr        | <http://localhost:8686>        | 8686 |
-| Readarr       | <http://localhost:8787>        | 8787 |
+| LazyLibrarian | <http://localhost:5299>        | 5299 |
 | Mylar         | <http://localhost:8090>        | 8090 |
-| NZBHydra2     | <http://localhost:5076>        | 5076 |
-| Jackett       | <http://localhost:9117>        | 9117 |
+| Prowlarr      | <http://localhost:9696>        | 9696 |
 | SABnzbd       | <http://localhost:8080>        | 8080 |
 | Transmission  | <http://localhost:9091>        | 9091 |
 

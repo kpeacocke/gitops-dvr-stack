@@ -35,12 +35,12 @@ This directory contains comprehensive documentation for the GitOps DVR Stack.
 - [Sonarr Wiki](https://wiki.servarr.com/sonarr)
 - [Radarr Wiki](https://wiki.servarr.com/radarr)
 - [Lidarr Wiki](https://wiki.servarr.com/lidarr)
-- [Readarr Wiki](https://wiki.servarr.com/readarr)
+- [LazyLibrarian Documentation](https://gitlab.com/LazyLibrarian/LazyLibrarian)
 
 ### Indexers & Downloaders
 
-- [NZBHydra2 Documentation](https://github.com/theotherp/nzbhydra2)
-- [Jackett Documentation](https://github.com/Jackett/Jackett)
+- [Prowlarr Wiki](https://wiki.servarr.com/prowlarr)
+- [FlareSolverr Documentation](https://github.com/FlareSolverr/FlareSolverr)
 - [SABnzbd Documentation](https://sabnzbd.org/wiki/)
 - [Transmission Documentation](https://transmissionbt.com/)
 

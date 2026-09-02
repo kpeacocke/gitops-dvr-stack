@@ -164,10 +164,9 @@ After deployment, access services at:
 | Sonarr        | http://your-host:8989            | None (set on first run) |
 | Radarr        | http://your-host:7878            | None (set on first run) |
 | Lidarr        | http://your-host:8686            | None (set on first run) |
-| Readarr       | http://your-host:8787            | None (set on first run) |
+| LazyLibrarian | http://your-host:5299            | None (set on first run) |
 | Mylar         | http://your-host:8090            | None (set on first run) |
-| NZBHydra2     | http://your-host:5076            | None (set on first run) |
-| Jackett       | http://your-host:9117            | None (set on first run) |
+| Prowlarr      | http://your-host:9696            | None (set on first run) |
 | SABnzbd       | http://your-host:8080            | None (set on first run) |
 | Transmission  | http://your-host:9091            | From .env file |
 
@@ -175,14 +174,10 @@ After deployment, access services at:
 
 ### 1. Configure Indexers
 
-**NZBHydra2** (http://your-host:5076)
-- Add your Usenet indexers
-- Configure API keys
-- Test connections
-
-**Jackett** (http://your-host:9117)
-- Add torrent indexers
-- Copy API key for use in other services
+**Prowlarr** (http://your-host:9696)
+- Add your Usenet and torrent indexers in one place
+- Under Settings → Indexers, set the FlareSolverr tag to `http://localhost:8191` for Cloudflare-protected trackers
+- Under Settings → Apps, add Sonarr/Radarr/Lidarr so indexers sync automatically
 
 ### 2. Configure Downloaders
 
@@ -201,9 +196,8 @@ After deployment, access services at:
 For each *arr service (Sonarr, Radarr, etc.):
 
 1. **Add Indexers**
-   - Settings → Indexers → Add
-   - Add NZBHydra2 (Newznab format)
-   - Add Jackett indexers (Torznab format)
+   - Preferred: let Prowlarr push indexers via Settings → Apps
+   - Manual fallback: Settings → Indexers → Add → Newznab/Torznab pointing at Prowlarr
 
 2. **Add Download Clients**
    - Settings → Download Clients → Add

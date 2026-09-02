@@ -31,7 +31,7 @@ healthcheck:
 - `--spider` mode doesn't download, just checks if accessible
 - Fast startup (10s start period)
 
-### *arr Services (Sonarr, Radarr, Lidarr, Readarr)
+### *arr Services (Sonarr, Radarr, Lidarr)
 
 ```yaml
 healthcheck:
@@ -54,7 +54,6 @@ healthcheck:
 - Sonarr: `http://localhost:8989/ping`
 - Radarr: `http://localhost:7878/ping`
 - Lidarr: `http://localhost:8686/ping`
-- Readarr: `http://localhost:8787/ping`
 
 ### Download Clients (Transmission, SABnzbd)
 
@@ -74,11 +73,11 @@ healthcheck:
 - Medium start period (60s) for service initialization
 - Transmission: port 9091, SABnzbd: port 8080
 
-### Indexers (Jackett, NZBHydra2, Mylar)
+### Web UI Services (Prowlarr, Mylar, LazyLibrarian)
 
 ```yaml
 healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:9117"]
+  test: ["CMD", "curl", "-f", "http://localhost:9696"]
   interval: 30s
   timeout: 10s
   retries: 3
@@ -90,7 +89,28 @@ healthcheck:
 - Checks web UI availability
 - Uses root endpoint
 - Standard start period (60s)
-- Jackett: 9117, NZBHydra2: 5076, Mylar: 8090
+- Prowlarr: 9696, Mylar: 8090, LazyLibrarian: 5299
+
+> FlareSolverr is checked via its own `/health` endpoint on port 8191.
+
+### Services Without a Web UI (Recyclarr, Unpackerr)
+
+```yaml
+healthcheck:
+  test: ["CMD-SHELL", "pgrep unpackerr > /dev/null || exit 1"]
+  interval: 60s
+  timeout: 10s
+  retries: 3
+  start_period: 30s
+```
+
+**Why this works:**
+
+- Neither service exposes an HTTP endpoint, so liveness is checked by process presence
+- Recyclarr checks for `crond`, since it runs on `CRON_SCHEDULE` rather than staying busy
+- Longer interval (60s) because these are low-churn background services
+
+> Gluetun has no `healthcheck:` block because its image ships a built-in one. Every other service uses `depends_on: condition: service_healthy` against it, so do not override it.
 
 ## Health Check Parameters Explained
 
@@ -256,8 +276,8 @@ docker exec radarr curl -f http://localhost:7878/ping
 # Test Transmission
 docker exec transmission curl -f http://localhost:9091
 
-# Test Jackett
-docker exec jackett curl -f http://localhost:9117
+# Test Prowlarr
+docker exec prowlarr curl -f http://localhost:9696
 ```
 
 ## Health Check Best Practices
@@ -372,12 +392,31 @@ healthcheck:
 | Sonarr        | 8989 | /ping                   | GET    | {"status":"OK"}         |
 | Radarr        | 7878 | /ping                   | GET    | {"status":"OK"}         |
 | Lidarr        | 8686 | /ping                   | GET    | {"status":"OK"}         |
-| Readarr       | 8787 | /ping                   | GET    | {"status":"OK"}         |
 | Transmission  | 9091 | /                       | GET    | HTML (web UI)           |
 | SABnzbd       | 8080 | /                       | GET    | HTML (web UI)           |
-| Jackett       | 9117 | /                       | GET    | HTML (web UI)           |
-| NZBHydra2     | 5076 | /                       | GET    | HTML (web UI)           |
+| Prowlarr      | 9696 | /                       | GET    | HTML (web UI)           |
+| FlareSolverr  | 8191 | /health                 | GET    | {"status":"ok"}         |
+| LazyLibrarian | 5299 | /                       | GET    | HTML (web UI)           |
 | Mylar         | 8090 | /                       | GET    | HTML (web UI)           |
+| Recyclarr     | n/a  | `pgrep crond`           | exec   | exit 0                  |
+| Unpackerr     | n/a  | `pgrep unpackerr`       | exec   | exit 0                  |
+
+## Logging Standard
+
+All services share a single anchor defined at the top of `docker-compose.yml`:
+
+```yaml
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+    tag: "{{.Name}}"
+```
+
+Each service references it with `logging: *default-logging`, capping disk use at
+50 MB per container and tagging lines with the container name. Add the same line
+to any new service so log rotation stays uniform.
 
 ## Automation
 

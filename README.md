@@ -8,8 +8,8 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 ## 🚀 Features
 
 - 🔒 All traffic routed through Gluetun VPN
-- � Automated media management: Sonarr, Radarr, Lidarr, Readarr, Mylar
-- � Indexers: NZBHydra2, Jackett, Prowlarr
+- � Automated media management: Sonarr, Radarr, Lidarr, LazyLibrarian, Mylar
+- � Indexers: Prowlarr (+ FlareSolverr for Cloudflare-protected trackers)
 - ⬇️ Downloaders: Transmission, SABnzbd
 - � Subtitles: Bazarr
 - � Profile sync: Recyclarr
@@ -148,9 +148,8 @@ Please review [SECURITY.md](./SECURITY.md) and report concerns to [krpeacocke@gm
 | Service        | Description                       | Default Port |
 |--------------- |-----------------------------------|--------------|
 | Gluetun        | VPN gateway (PIA)                 | 7878, 8080, etc |
-| NZBHydra2      | Usenet indexer aggregator         | 5076         |
-| Jackett        | Torrent indexer                   | 9117         |
 | Prowlarr       | Indexer manager                   | 9696         |
+| FlareSolverr   | Cloudflare challenge solver       | 8191 (internal) |
 | SABnzbd        | Usenet downloader                 | 8080         |
 | Transmission   | Torrent downloader                | 9091         |
 | Sonarr         | TV automation                     | 8989         |
@@ -158,7 +157,7 @@ Please review [SECURITY.md](./SECURITY.md) and report concerns to [krpeacocke@gm
 | Bazarr         | Subtitles automation              | 6767         |
 | Lidarr         | Music automation                  | 8686         |
 | Mylar          | Comics automation                 | 8090         |
-| Readarr        | Book automation                   | 8787         |
+| LazyLibrarian  | Book/audiobook automation         | 5299         |
 | Recyclarr      | Quality profile sync              | N/A          |
 | Unpackerr      | Archive extraction                | N/A          |
 

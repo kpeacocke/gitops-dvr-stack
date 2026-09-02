@@ -22,13 +22,15 @@ The GitOps DVR Stack is a Docker Compose-based media automation platform that ro
 │  │  └──────────┘  └──────────┘  └──────────┘         │    │
 │  │                                                      │    │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐         │    │
-│  │  │ Readarr  │  │  Mylar   │  │ NZBHydra │         │    │
-│  │  │ :8787    │  │ :8090    │  │ :5076    │         │    │
+│  │  │  Lazy    │  │  Mylar   │  │ Prowlarr │         │    │
+│  │  │Librarian │  │ :8090    │  │ :9696    │         │    │
+│  │  │ :5299    │  │          │  │          │         │    │
 │  │  └──────────┘  └──────────┘  └──────────┘         │    │
 │  │                                                      │    │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐         │    │
-│  │  │ Jackett  │  │ SABnzbd  │  │Transmis- │         │    │
-│  │  │ :9117    │  │ :8080    │  │sion :9091│         │    │
+│  │  │  Flare   │  │ SABnzbd  │  │Transmis- │         │    │
+│  │  │ Solverr  │  │ :8080    │  │sion :9091│         │    │
+│  │  │ :8191    │  │          │  │          │         │    │
 │  │  └──────────┘  └──────────┘  └──────────┘         │    │
 │  │                                                      │    │
 │  └────────────────────────────────────────────────────┘    │
@@ -59,15 +61,14 @@ The GitOps DVR Stack is a Docker Compose-based media automation platform that ro
 - **Sonarr**: TV show automation
 - **Radarr**: Movie automation
 - **Lidarr**: Music automation
-- **Readarr**: Book automation
+- **LazyLibrarian**: Book and audiobook automation
 - **Mylar**: Comic book automation
 - **Bazarr**: Subtitles automation for Sonarr/Radarr
 
 ### Indexers
 
-- **NZBHydra2**: Usenet indexer aggregator
-- **Jackett**: Torrent indexer proxy
 - **Prowlarr**: Indexer manager for Usenet and torrents
+- **FlareSolverr**: Solves Cloudflare challenges for protected indexers (internal only, reachable at `http://localhost:8191`)
 
 ### Downloaders
 
