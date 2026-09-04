@@ -36,9 +36,10 @@ services:
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_STATUS_FILE=/gluetun/portfwd
       # Pushes each new forwarded port into qBittorrent; requires "Bypass authentication
-      # for clients on localhost" to be enabled in the qBittorrent Web UI.
-      # Body is percent-encoded to avoid nested quoting inside the shell command.
-      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'wget -qO- --post-data=json=%7B%22listen_port%22%3A{{PORTS}}%7D http://127.0.0.1:8081/api/v2/app/setPreferences'
+      # for clients on localhost" to be enabled in the qBittorrent Web UI. qBittorrent
+      # starts after Gluetun, so retry while its Web UI comes online instead of losing
+      # the initial port-forwarding event. Body is percent-encoded to avoid nested quoting.
+      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60; do wget -qO- --post-data=json=%7B%22listen_port%22%3A{{PORTS}}%7D http://127.0.0.1:8081/api/v2/app/setPreferences && exit 0; sleep 2; done; exit 1'
       - UPDATER_VPN_SERVICE_PROVIDER=private internet access
       - UPDATER_PERIOD=24h
 
