@@ -310,7 +310,6 @@ services:
       gluetun:
         condition: service_healthy
     network_mode: "service:gluetun"
-    user: "1027:100"
     environment:
       - RECYCLARR_CONFIG_REF=${RECYCLARR_CONFIG_REF:-main}
     # Portainer's Git checkout is disposable and cannot be used as a durable
