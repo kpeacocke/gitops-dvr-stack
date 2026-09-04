@@ -405,5 +405,66 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+  config-ops-sync:
+    image: 'alpine:3.22'
+    container_name: config-ops-sync
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    user: "1027:100"
+    environment:
+      - CONFIG_OPS_REF=${CONFIG_OPS_REF:-main}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /config
+        wget -q -O /config/audit.sh \
+          "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${CONFIG_OPS_REF}/stack/config/config-ops/audit.sh"
+        chmod 0755 /config/audit.sh
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/config-ops:/config'
+    restart: "no"
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+  config-audit:
+    image: 'alpine:3.22'
+    container_name: config-audit
+    depends_on:
+      config-ops-sync:
+        condition: service_completed_successfully
+    network_mode: "service:gluetun"
+    environment:
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - PROWLARR_API_KEY=${PROWLARR_API_KEY}
+      - VPN_EXPECTED_COUNTRY=${VPN_EXPECTED_COUNTRY:-CH}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        apk add --no-cache curl jq
+        while true; do
+          if /config/audit.sh; then
+            touch /tmp/audit-ok
+          else
+            rm -f /tmp/audit-ok
+          fi
+          sleep 21600
+        done
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/config-ops:/config:ro'
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/audit-ok"]
+      interval: 60s
+      timeout: 5s
+      retries: 1
+      start_period: 120s
 networks:
   gluetun: null

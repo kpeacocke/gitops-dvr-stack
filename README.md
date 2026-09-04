@@ -15,6 +15,7 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 - � Profile sync: Recyclarr
 - 📦 Archive extraction: Unpackerr
 - 🧹 Stalled/failed download cleanup: Cleanuparr
+- 🔎 Scheduled configuration-drift auditing
 - 🧪 Justfile for CLI tasks
 - 🧱 Modular folder structure for growth
 
@@ -77,6 +78,8 @@ When changes are merged to `main`, GitHub Actions automatically triggers the Por
 🚫 Direct commits to `main` are disabled by branch protection rules.
 
 For detailed GitOps setup and troubleshooting, see [PORTAINER_GITOPS.md](./docs/PORTAINER_GITOPS.md).
+The configuration/state boundary and audit contract are documented in
+[CONFIGURATION_AS_CODE.md](./docs/CONFIGURATION_AS_CODE.md).
 
 ---
 
