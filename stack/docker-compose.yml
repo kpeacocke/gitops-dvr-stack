@@ -25,9 +25,6 @@ services:
       - 127.0.0.1:8081:8081/tcp
       - 127.0.0.1:11011:11011/tcp
       - 127.0.0.1:5299:5299/tcp
-      - 127.0.0.1:8181:8181/tcp
-      - 127.0.0.1:5055:5055/tcp
-      - 127.0.0.1:5454:5454/tcp
     environment:
       - PUID=1027
       - PGID=100
@@ -60,7 +57,7 @@ services:
       - SHADOWSOCKS=off
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/gluetun:/gluetun'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -74,7 +71,7 @@ services:
     environment:
       - LOG_LEVEL=info
       - TZ=${TZ:-Australia/Sydney}
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -97,7 +94,7 @@ services:
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/prowlarr:/config'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -121,7 +118,7 @@ services:
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/sabnzbd:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -146,7 +143,7 @@ services:
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/qbittorrent:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -171,7 +168,7 @@ services:
       - '${TV_PATH:?Set TV_PATH in .env}:/tv'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/sonarr:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -196,7 +193,7 @@ services:
       - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/radarr:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -221,7 +218,7 @@ services:
       - '${TV_PATH:?Set TV_PATH in .env}:/tv'
       - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/bazarr:/config'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -246,7 +243,7 @@ services:
       - '${MUSIC_PATH:?Set MUSIC_PATH in .env}:/music'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/lidarr:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -271,7 +268,7 @@ services:
       - '${COMICS_PATH:?Set COMICS_PATH in .env}:/comics'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/mylar:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -296,7 +293,7 @@ services:
       - '${BOOKS_PATH:?Set BOOKS_PATH in .env}:/books'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/lazylibrarian:/config'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -374,7 +371,7 @@ services:
       - UN_LIDARR_0_API_KEY=${LIDARR_API_KEY}
     volumes:
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -398,132 +395,13 @@ services:
       - PORT=11011
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/cleanuparr:/config'
-    restart: unless-stopped
+    restart: always
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11011/health"]
       interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-  tautulli:
-    image: 'lscr.io/linuxserver/tautulli:latest'
-    container_name: tautulli
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    network_mode: "service:gluetun"
-    environment:
-      - PUID=1027
-      - PGID=100
-      - TZ=${TZ:-Australia/Sydney}
-    volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tautulli:/config'
-    restart: unless-stopped
-    logging: *default-logging
-    security_opt:
-      - no-new-privileges:true
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8181/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-  seerr:
-    image: 'ghcr.io/seerr-team/seerr:latest'
-    container_name: seerr
-    init: true
-    user: "1027:100"
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    network_mode: "service:gluetun"
-    environment:
-      - LOG_LEVEL=info
-      - TZ=${TZ:-Australia/Sydney}
-      - PORT=5055
-    volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/seerr:/app/config'
-    restart: unless-stopped
-    logging: *default-logging
-    security_opt:
-      - no-new-privileges:true
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 60s
-  kometa-config:
-    image: 'alpine:3.22'
-    container_name: kometa-config
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    network_mode: "service:gluetun"
-    user: "1027:100"
-    environment:
-      - KOMETA_CONFIG_REF=${KOMETA_CONFIG_REF:-main}
-    command:
-      - /bin/sh
-      - -ec
-      - |
-        mkdir -p /config
-        wget -q -O /config/config.yml \
-          "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${KOMETA_CONFIG_REF}/stack/config/kometa/config.yml"
-    volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/kometa:/config'
-    restart: "no"
-    logging: *default-logging
-    security_opt:
-      - no-new-privileges:true
-  kometa:
-    image: 'kometateam/kometa:latest'
-    container_name: kometa
-    depends_on:
-      kometa-config:
-        condition: service_completed_successfully
-    network_mode: "service:gluetun"
-    user: "1027:100"
-    environment:
-      - TZ=${TZ:-Australia/Sydney}
-      - KOMETA_TIMES=${KOMETA_TIMES:-05:00}
-      - KOMETA_PLEX_URL=${KOMETA_PLEX_URL:-https://plex.ambitiouscake.com}
-      - KOMETA_PLEX_TOKEN=${KOMETA_PLEX_TOKEN}
-      - KOMETA_TMDB_APIKEY=${KOMETA_TMDB_APIKEY}
-    volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/kometa:/config'
-    restart: unless-stopped
-    logging: *default-logging
-    security_opt:
-      - no-new-privileges:true
-  notifiarr:
-    image: 'golift/notifiarr:latest'
-    container_name: notifiarr
-    hostname: notifiarr
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    network_mode: "service:gluetun"
-    user: "1027:100"
-    environment:
-      - TZ=${TZ:-Australia/Sydney}
-      - DN_API_KEY=${NOTIFIARR_API_KEY}
-    volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/notifiarr:/config'
-      - '/etc/machine-id:/etc/machine-id:ro'
-      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads:ro'
-      - '${TV_PATH:?Set TV_PATH in .env}:/tv:ro'
-      - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies:ro'
-    restart: unless-stopped
-    logging: *default-logging
-    security_opt:
-      - no-new-privileges:true
-    healthcheck:
-      test: ["CMD", "/image", "--ps"]
-      interval: 60s
       timeout: 10s
       retries: 3
       start_period: 60s
@@ -556,34 +434,12 @@ services:
     depends_on:
       config-ops-sync:
         condition: service_completed_successfully
-      prowlarr:
-        condition: service_healthy
-      sabnzbd:
-        condition: service_healthy
-      qbittorrent:
-        condition: service_healthy
-      sonarr:
-        condition: service_healthy
-      radarr:
-        condition: service_healthy
-      bazarr:
-        condition: service_healthy
-      lidarr:
-        condition: service_healthy
-      tautulli:
-        condition: service_healthy
-      seerr:
-        condition: service_healthy
-      notifiarr:
-        condition: service_healthy
     network_mode: "service:gluetun"
     environment:
       - SONARR_API_KEY=${SONARR_API_KEY}
       - RADARR_API_KEY=${RADARR_API_KEY}
-      - LIDARR_API_KEY=${LIDARR_API_KEY}
       - PROWLARR_API_KEY=${PROWLARR_API_KEY}
       - VPN_EXPECTED_COUNTRY=${VPN_EXPECTED_COUNTRY:-CH}
-      - BACKUP_MAX_AGE_DAYS=${BACKUP_MAX_AGE_DAYS:-8}
     command:
       - /bin/sh
       - -ec
@@ -600,9 +456,6 @@ services:
     volumes:
       - config-ops:/config:ro
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/prowlarr:/prowlarr-config:ro'
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/sonarr:/sonarr-config:ro'
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/radarr:/radarr-config:ro'
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/lidarr:/lidarr-config:ro'
     restart: unless-stopped
     logging: *default-logging
     security_opt:

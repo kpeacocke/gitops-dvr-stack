@@ -15,10 +15,6 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 - � Profile sync: Recyclarr
 - 📦 Archive extraction: Unpackerr
 - 🧹 Stalled/failed download cleanup: Cleanuparr
-- 📊 Plex analytics: Tautulli
-- 🙋 Media requests: Seerr
-- 🖼️ Plex collections and overlays: Kometa
-- 🔔 Unified notifications: Notifiarr
 - 🔎 Scheduled configuration-drift auditing
 - 🧪 Justfile for CLI tasks
 - 🧱 Modular folder structure for growth
@@ -169,10 +165,6 @@ Please review [SECURITY.md](./SECURITY.md) and report concerns to [krpeacocke@gm
 | Recyclarr      | Quality profile sync              | N/A          |
 | Cleanuparr     | Stalled/failed download cleanup   | 11011        |
 | Unpackerr      | Archive extraction                | N/A          |
-| Tautulli       | Plex analytics                     | 8181         |
-| Seerr          | Media requests                     | 5055         |
-| Kometa         | Plex collections and overlays      | N/A          |
-| Notifiarr      | Notifications and app monitoring   | 5454         |
 
 All services are routed through Gluetun VPN for privacy.
 
@@ -189,11 +181,6 @@ network interface in this topology. Examples:
 - Prowlarr to Sonarr/Radarr: `http://localhost:8989` and `http://localhost:7878`
 - Prowlarr to FlareSolverr: `http://localhost:8191`
 - Bazarr to Sonarr/Radarr: `http://localhost:8989` and `http://localhost:7878`
-- Seerr/Notifiarr to the Arr applications: `http://localhost:<app-port>`
-
-Tautulli, Seerr, Kometa, and Notifiarr share Gluetun as requested. Their Plex
-connection must use `https://plex.ambitiouscake.com`, because Plex is in its
-own host-networked stack rather than this shared namespace.
 
 Only browser and reverse-proxy traffic should use the published host ports and
 `*.ambitiouscake.com` names. Plex intentionally remains in its separate stack
