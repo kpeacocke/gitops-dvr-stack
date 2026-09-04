@@ -59,7 +59,16 @@ check_delay_profiles() {
 }
 
 check_prowlarr_apps() {
-  apps=$(api_json "http://localhost:9696/api/v1/applications" "$PROWLARR_API_KEY") || {
+  prowlarr_key=${PROWLARR_API_KEY:-}
+  if [ -z "$prowlarr_key" ] && [ -r /prowlarr-config/config.xml ]; then
+    prowlarr_key=$(sed -n 's:.*<ApiKey>\([^<]*\)</ApiKey>.*:\1:p' /prowlarr-config/config.xml | head -n 1)
+  fi
+  if [ -z "$prowlarr_key" ]; then
+    fail "Prowlarr API key is unavailable"
+    return
+  fi
+
+  apps=$(api_json "http://localhost:9696/api/v1/applications" "$prowlarr_key") || {
     fail "Prowlarr applications API failed"
     return
   }

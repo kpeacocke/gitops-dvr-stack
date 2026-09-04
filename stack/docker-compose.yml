@@ -455,6 +455,7 @@ services:
         done
     volumes:
       - config-ops:/config:ro
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/prowlarr:/prowlarr-config:ro'
     restart: unless-stopped
     logging: *default-logging
     security_opt:
