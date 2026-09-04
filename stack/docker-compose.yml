@@ -30,13 +30,13 @@ services:
       - 127.0.0.1:5055:5055/tcp
       - 127.0.0.1:5454:5454/tcp
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
-      - VPN_SERVICE_PROVIDER=private internet access
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER:-private internet access}
       - OPENVPN_USER=${OPENVPN_USER}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
-      - SERVER_REGIONS=Switzerland
+      - SERVER_REGIONS=${VPN_SERVER_REGIONS:-Switzerland}
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_STATUS_FILE=/gluetun/portfwd
       # Permit private service-to-service traffic (not Internet egress), including
@@ -47,15 +47,15 @@ services:
       # starts after Gluetun, so retry while its Web UI comes online instead of losing
       # the initial port-forwarding event. Body is percent-encoded to avoid nested quoting.
       - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'for attempt in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60; do wget -qO- --post-data=json=%7B%22listen_port%22%3A{{PORTS}}%7D http://127.0.0.1:8081/api/v2/app/setPreferences && exit 0; sleep 2; done; exit 1'
-      - UPDATER_VPN_SERVICE_PROVIDER=private internet access
+      - UPDATER_VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER:-private internet access}
       - UPDATER_PERIOD=24h
 
       # DNS: simplify first
       - DNS_UPSTREAM_RESOLVER_TYPE=plain
-      - DNS_UPSTREAM_PLAIN_ADDRESSES=1.1.1.1:53,1.0.0.1:53
+      - DNS_UPSTREAM_PLAIN_ADDRESSES=${VPN_DNS_SERVERS:-1.1.1.1:53,1.0.0.1:53}
 
       # Optional: make the startup healthcheck easier to pass while testing
-      - HEALTH_TARGET_ADDRESSES=1.1.1.1:443,cloudflare.com:443,github.com:443
+      - HEALTH_TARGET_ADDRESSES=${VPN_HEALTH_TARGETS:-1.1.1.1:443,cloudflare.com:443,github.com:443}
 
       - BLOCK_MALICIOUS=on
       - BLOCK_SURVEILLANCE=on
@@ -96,8 +96,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/prowlarr:/config'
@@ -119,8 +119,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/sabnzbd:/config'
@@ -143,8 +143,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
       - WEBUI_PORT=8081
     volumes:
@@ -168,8 +168,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${TV_PATH:?Set TV_PATH in .env}:/tv'
@@ -193,8 +193,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies'
@@ -218,8 +218,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${TV_PATH:?Set TV_PATH in .env}:/tv'
@@ -243,8 +243,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${MUSIC_PATH:?Set MUSIC_PATH in .env}:/music'
@@ -268,8 +268,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${COMICS_PATH:?Set COMICS_PATH in .env}:/comics'
@@ -293,8 +293,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${BOOKS_PATH:?Set BOOKS_PATH in .env}:/books'
@@ -367,8 +367,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
       - UN_SONARR_0_URL=http://localhost:8989
       - UN_SONARR_0_API_KEY=${SONARR_API_KEY}
@@ -396,8 +396,8 @@ services:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
       - PORT=11011
     volumes:
@@ -439,8 +439,8 @@ services:
         condition: service_completed_successfully
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
       - TZ=${TZ:-Australia/Sydney}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tautulli:/config'
