@@ -41,7 +41,8 @@ check_download_clients() {
   app=$1
   base=$2
   key=$3
-  clients=$(api_json "$base/api/v3/downloadclient" "$key") || {
+  api_version=${4:-v3}
+  clients=$(api_json "$base/api/$api_version/downloadclient" "$key") || {
     fail "$app download-client API failed"
     return
   }
@@ -64,7 +65,8 @@ check_delay_profiles() {
   app=$1
   base=$2
   key=$3
-  profiles=$(api_json "$base/api/v3/delayprofile" "$key") || {
+  api_version=${4:-v3}
+  profiles=$(api_json "$base/api/$api_version/delayprofile" "$key") || {
     fail "$app delay-profile API failed"
     return
   }
@@ -100,11 +102,11 @@ check_qbittorrent_vpn_port() {
     return
   }
   listen_port=$(printf '%s' "$preferences" | jq -r '.listen_port // 0')
-  random_port=$(printf '%s' "$preferences" | jq -r '.random_port // true')
-  if [ "$listen_port" -gt 0 ] && [ "$random_port" = false ]; then
-    ok "qBittorrent uses the Gluetun-managed fixed listening port $listen_port"
+  forwarded_port=$(tr -cd '0-9' </gluetun/portfwd 2>/dev/null || true)
+  if [ -n "$forwarded_port" ] && [ "$listen_port" = "$forwarded_port" ]; then
+    ok "qBittorrent listening port matches Gluetun port forwarding ($listen_port)"
   else
-    fail "qBittorrent listening port is not managed by Gluetun"
+    fail "qBittorrent listening port ($listen_port) does not match Gluetun (${forwarded_port:-unavailable})"
   fi
 }
 
@@ -136,8 +138,8 @@ check_download_clients Sonarr http://localhost:8989 "$SONARR_API_KEY"
 check_download_clients Radarr http://localhost:7878 "$RADARR_API_KEY"
 check_delay_profiles Sonarr http://localhost:8989 "$SONARR_API_KEY"
 check_delay_profiles Radarr http://localhost:7878 "$RADARR_API_KEY"
-check_download_clients Lidarr http://localhost:8686 "$LIDARR_API_KEY"
-check_delay_profiles Lidarr http://localhost:8686 "$LIDARR_API_KEY"
+check_download_clients Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
+check_delay_profiles Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
 check_prowlarr_apps
 check_qbittorrent_vpn_port
 

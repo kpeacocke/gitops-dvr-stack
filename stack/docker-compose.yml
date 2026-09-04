@@ -39,6 +39,9 @@ services:
       - SERVER_REGIONS=Switzerland
       - VPN_PORT_FORWARDING=on
       - VPN_PORT_FORWARDING_STATUS_FILE=/gluetun/portfwd
+      # Permit private service-to-service traffic (not Internet egress), including
+      # Seerr/Tautulli/Kometa reaching the separately managed Plex host.
+      - FIREWALL_OUTBOUND_SUBNETS=${LAN_SUBNET:-192.168.3.0/24}
       # Pushes each new forwarded port into qBittorrent; requires "Bypass authentication
       # for clients on localhost" to be enabled in the qBittorrent Web UI. qBittorrent
       # starts after Gluetun, so retry while its Web UI comes online instead of losing
@@ -628,6 +631,7 @@ services:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/sonarr:/sonarr-config:ro'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/radarr:/radarr-config:ro'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/lidarr:/lidarr-config:ro'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/gluetun:/gluetun:ro'
     restart: unless-stopped
     logging: *default-logging
     security_opt:
