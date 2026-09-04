@@ -16,6 +16,21 @@ check_http() {
   fi
 }
 
+check_recent_backup() {
+  name=$1
+  directory=$2
+  max_age_days=${BACKUP_MAX_AGE_DAYS:-8}
+  if [ ! -d "$directory" ]; then
+    fail "$name native backup directory is missing: $directory"
+    return
+  fi
+  if find "$directory" -type f -name '*.zip' -mtime "-$max_age_days" -print -quit | grep -q .; then
+    ok "$name has a native backup newer than $max_age_days days"
+  else
+    fail "$name has no native backup newer than $max_age_days days"
+  fi
+}
+
 api_json() {
   url=$1
   key=$2
@@ -72,10 +87,25 @@ check_prowlarr_apps() {
     fail "Prowlarr applications API failed"
     return
   }
-  for expected in Sonarr Radarr; do
+  for expected in Sonarr Radarr Lidarr; do
     count=$(printf '%s' "$apps" | jq --arg app "$expected" '[.[] | select(.implementation == $app)] | length')
     [ "$count" -ge 1 ] && ok "Prowlarr manages $expected" || fail "Prowlarr is missing $expected"
   done
+}
+
+
+check_qbittorrent_vpn_port() {
+  preferences=$(curl -fsS --max-time 20 http://localhost:8081/api/v2/app/preferences) || {
+    fail "qBittorrent preferences API failed"
+    return
+  }
+  listen_port=$(printf '%s' "$preferences" | jq -r '.listen_port // 0')
+  random_port=$(printf '%s' "$preferences" | jq -r '.random_port // true')
+  if [ "$listen_port" -gt 0 ] && [ "$random_port" = false ]; then
+    ok "qBittorrent uses the Gluetun-managed fixed listening port $listen_port"
+  else
+    fail "qBittorrent listening port is not managed by Gluetun"
+  fi
 }
 
 printf 'DVR desired-state audit: %s\n' "$(date -Iseconds)"
@@ -94,12 +124,27 @@ check_http Sonarr http://localhost:8989/ping
 check_http Radarr http://localhost:7878/ping
 check_http Bazarr http://localhost:6767/
 check_http Cleanuparr http://localhost:11011/health
+check_http Lidarr http://localhost:8686/ping
+check_http Mylar http://localhost:8090/
+check_http LazyLibrarian http://localhost:5299/
+check_http FlareSolverr http://localhost:8191/health
+check_http Tautulli http://localhost:8181/status
+check_http Seerr http://localhost:5055/api/v1/settings/public
+check_http Notifiarr http://localhost:5454/
 
 check_download_clients Sonarr http://localhost:8989 "$SONARR_API_KEY"
 check_download_clients Radarr http://localhost:7878 "$RADARR_API_KEY"
 check_delay_profiles Sonarr http://localhost:8989 "$SONARR_API_KEY"
 check_delay_profiles Radarr http://localhost:7878 "$RADARR_API_KEY"
+check_download_clients Lidarr http://localhost:8686 "$LIDARR_API_KEY"
+check_delay_profiles Lidarr http://localhost:8686 "$LIDARR_API_KEY"
 check_prowlarr_apps
+check_qbittorrent_vpn_port
+
+check_recent_backup Sonarr /sonarr-config/Backups/scheduled
+check_recent_backup Radarr /radarr-config/Backups/scheduled
+check_recent_backup Lidarr /lidarr-config/Backups/scheduled
+check_recent_backup Prowlarr /prowlarr-config/Backups/scheduled
 
 if [ "$failures" -gt 0 ]; then
   printf 'Audit failed with %s finding(s).\n' "$failures" >&2
