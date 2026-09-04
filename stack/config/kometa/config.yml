@@ -1,0 +1,37 @@
+libraries:
+  Movies:
+    collection_files:
+      - default: basic
+      - default: imdb
+      - default: tmdb
+    overlay_files:
+      - default: resolution
+      - default: audio_codec
+  TV Shows:
+    collection_files:
+      - default: basic
+      - default: imdb
+      - default: tmdb
+    overlay_files:
+      - default: resolution
+      - default: audio_codec
+settings:
+  cache: true
+  cache_expiration: 60
+  asset_directory: config/assets
+  create_asset_folders: false
+  run_order:
+    - operations
+    - metadata
+    - collections
+    - overlays
+plex:
+  url: <<plex_url>>
+  token: <<plex_token>>
+  timeout: 60
+  clean_bundles: false
+  empty_trash: false
+  optimize: false
+tmdb:
+  apikey: <<tmdb_apikey>>
+  language: en
