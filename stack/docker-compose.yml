@@ -10,7 +10,6 @@ services:
   gluetun:
     image: 'qmcgaw/gluetun:latest'
     container_name: gluetun
-    hostname: dvr-vpn
     networks:
       - gluetun
     cap_add:
@@ -526,6 +525,7 @@ services:
   notifiarr:
     image: 'golift/notifiarr:latest'
     container_name: notifiarr
+    hostname: notifiarr
     depends_on:
       gluetun:
         condition: service_healthy
