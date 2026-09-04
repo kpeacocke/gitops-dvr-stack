@@ -303,6 +303,34 @@ services:
       timeout: 10s
       retries: 3
       start_period: 90s
+  recyclarr-config:
+    image: 'alpine:3.22'
+    container_name: recyclarr-config
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    user: "1027:100"
+    environment:
+      - RECYCLARR_CONFIG_REF=${RECYCLARR_CONFIG_REF:-main}
+    # Portainer's Git checkout is disposable and cannot be used as a durable
+    # bind-mount source. Copy the versioned templates into persistent config
+    # storage over the VPN before Recyclarr starts.
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /config/configs
+        for file in hd-bluray-web.yml uhd-bluray-web.yml web-1080p.yml web-2160p.yml; do
+          wget -q -O "/config/configs/$${file}" \
+            "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${RECYCLARR_CONFIG_REF}/stack/config/recyclarr/configs/$${file}"
+        done
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/recyclarr:/config'
+    restart: "no"
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
   recyclarr:
     image: 'ghcr.io/recyclarr/recyclarr:8'
     container_name: recyclarr
@@ -310,8 +338,8 @@ services:
     # the same Synology account as the rest of the stack so /config is writable.
     user: "1027:100"
     depends_on:
-      gluetun:
-        condition: service_healthy
+      recyclarr-config:
+        condition: service_completed_successfully
     network_mode: "service:gluetun"
     environment:
       - TZ=${TZ:-Australia/Sydney}
@@ -320,7 +348,6 @@ services:
       - RADARR_API_KEY=${RADARR_API_KEY}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/recyclarr:/config'
-      - './config/recyclarr/configs:/config/configs:ro'
     restart: unless-stopped
     logging: *default-logging
     security_opt:
