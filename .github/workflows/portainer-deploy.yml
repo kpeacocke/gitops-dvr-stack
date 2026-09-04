@@ -30,7 +30,7 @@ jobs:
         run: yamllint stack/
 
       - name: Validate docker-compose
-        run: docker compose -f stack/docker-compose.yml config
+        run: docker compose --env-file stack/.env.sample -f stack/docker-compose.yml config
 
   test:
     name: Test
@@ -50,7 +50,7 @@ jobs:
       - name: Verify health check configurations
         run: |
           echo "✅ Verifying health check configurations..."
-          docker compose -f stack/docker-compose.yml config | grep -A 5 healthcheck || echo "Health checks verified"
+          docker compose --env-file stack/.env.sample -f stack/docker-compose.yml config | grep -A 5 healthcheck || echo "Health checks verified"
 
   release:
     name: Release
