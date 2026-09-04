@@ -424,7 +424,7 @@ services:
           "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${CONFIG_OPS_REF}/stack/config/config-ops/audit.sh"
         chmod 0755 /config/audit.sh
     volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/config-ops:/config'
+      - config-ops:/config
     restart: "no"
     logging: *default-logging
     security_opt:
@@ -455,7 +455,7 @@ services:
           sleep 21600
         done
     volumes:
-      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/config-ops:/config:ro'
+      - config-ops:/config:ro
     restart: unless-stopped
     logging: *default-logging
     security_opt:
@@ -468,3 +468,5 @@ services:
       start_period: 120s
 networks:
   gluetun: null
+volumes:
+  config-ops: null
