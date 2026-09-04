@@ -143,10 +143,10 @@ check_delay_profiles Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
 check_prowlarr_apps
 check_qbittorrent_vpn_port
 
-check_recent_backup Sonarr /sonarr-config/Backups/scheduled
-check_recent_backup Radarr /radarr-config/Backups/scheduled
-check_recent_backup Lidarr /lidarr-config/Backups/scheduled
-check_recent_backup Prowlarr /prowlarr-config/Backups/scheduled
+check_recent_backup Sonarr /sonarr-config/Backups
+check_recent_backup Radarr /radarr-config/Backups
+check_recent_backup Lidarr /lidarr-config/Backups
+check_recent_backup Prowlarr /prowlarr-config/Backups
 
 if [ "$failures" -gt 0 ]; then
   printf 'Audit failed with %s finding(s).\n' "$failures" >&2
