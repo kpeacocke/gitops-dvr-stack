@@ -408,12 +408,31 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+  media-config-init:
+    image: 'alpine:3.22'
+    container_name: media-config-init
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        chown -R 1027:100 /tautulli /seerr /kometa /notifiarr
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tautulli:/tautulli'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/seerr:/seerr'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/kometa:/kometa'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/notifiarr:/notifiarr'
+    restart: "no"
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
   tautulli:
     image: 'lscr.io/linuxserver/tautulli:latest'
     container_name: tautulli
     depends_on:
       gluetun:
         condition: service_healthy
+      media-config-init:
+        condition: service_completed_successfully
     network_mode: "service:gluetun"
     environment:
       - PUID=1027
@@ -439,6 +458,8 @@ services:
     depends_on:
       gluetun:
         condition: service_healthy
+      media-config-init:
+        condition: service_completed_successfully
     network_mode: "service:gluetun"
     environment:
       - LOG_LEVEL=info
@@ -462,6 +483,8 @@ services:
     depends_on:
       gluetun:
         condition: service_healthy
+      media-config-init:
+        condition: service_completed_successfully
     network_mode: "service:gluetun"
     user: "1027:100"
     environment:
@@ -506,6 +529,8 @@ services:
     depends_on:
       gluetun:
         condition: service_healthy
+      media-config-init:
+        condition: service_completed_successfully
     network_mode: "service:gluetun"
     user: "1027:100"
     environment:
