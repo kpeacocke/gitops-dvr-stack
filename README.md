@@ -165,4 +165,23 @@ Please review [SECURITY.md](./SECURITY.md) and report concerns to [krpeacocke@gm
 
 All services are routed through Gluetun VPN for privacy.
 
+### Internal addressing standard
+
+Every application service uses `network_mode: "service:gluetun"`, so the
+containers share one network namespace. Configure application-to-application
+URLs as `http://localhost:<port>` (or `127.0.0.1`) and never as
+`http://<container-name>:<port>`; Docker DNS names do not address a distinct
+network interface in this topology. Examples:
+
+- Sonarr/Radarr to SABnzbd: `http://localhost:8080`
+- Sonarr/Radarr to qBittorrent: `http://localhost:8081`
+- Prowlarr to Sonarr/Radarr: `http://localhost:8989` and `http://localhost:7878`
+- Prowlarr to FlareSolverr: `http://localhost:8191`
+- Bazarr to Sonarr/Radarr: `http://localhost:8989` and `http://localhost:7878`
+
+Only browser and reverse-proxy traffic should use the published host ports and
+`*.ambitiouscake.com` names. Plex intentionally remains in its separate stack
+and outside Gluetun so local discovery, hardware transcoding, and remote
+playback are not coupled to the download VPN.
+
 ---
