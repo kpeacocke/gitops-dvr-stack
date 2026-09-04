@@ -306,13 +306,14 @@ services:
   recyclarr:
     image: 'ghcr.io/recyclarr/recyclarr:8'
     container_name: recyclarr
+    # The official image is rootless and does not support PUID/PGID. Run it as
+    # the same Synology account as the rest of the stack so /config is writable.
+    user: "1027:100"
     depends_on:
       gluetun:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
-      - PUID=1027
-      - PGID=100
       - TZ=${TZ:-Australia/Sydney}
       - CRON_SCHEDULE=0 4 * * *
       - SONARR_API_KEY=${SONARR_API_KEY}
@@ -324,12 +325,6 @@ services:
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep crond > /dev/null || exit 1"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
   unpackerr:
     image: 'golift/unpackerr:latest'
     container_name: unpackerr
