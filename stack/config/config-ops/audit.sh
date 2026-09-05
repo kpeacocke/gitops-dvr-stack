@@ -31,6 +31,20 @@ check_recent_backup() {
   fi
 }
 
+check_free_space() {
+  directory=$1
+  minimum_gib=${MIN_FREE_SPACE_GIB:-500}
+  available_kib=$(df -Pk "$directory" | awk 'NR == 2 { print $4 }')
+  minimum_kib=$((minimum_gib * 1024 * 1024))
+  if [ "${available_kib:-0}" -ge "$minimum_kib" ]; then
+    available_gib=$((available_kib / 1024 / 1024))
+    ok "$directory has ${available_gib} GiB free (minimum ${minimum_gib} GiB)"
+  else
+    available_gib=$((${available_kib:-0} / 1024 / 1024))
+    fail "$directory has only ${available_gib} GiB free (minimum ${minimum_gib} GiB)"
+  fi
+}
+
 api_json() {
   url=$1
   key=$2
@@ -142,6 +156,7 @@ check_download_clients Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
 check_delay_profiles Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
 check_prowlarr_apps
 check_qbittorrent_vpn_port
+check_free_space /downloads
 
 check_recent_backup Sonarr /sonarr-config/Backups
 check_recent_backup Radarr /radarr-config/Backups

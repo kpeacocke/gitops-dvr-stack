@@ -317,7 +317,7 @@ services:
       gluetun:
         condition: service_healthy
     network_mode: "service:gluetun"
-    user: "1027:100"
+    user: "${PUID:-1027}:${PGID:-100}"
     environment:
       - RECYCLARR_CONFIG_REF=${RECYCLARR_CONFIG_REF:-main}
     # Portainer's Git checkout is disposable and cannot be used as a durable
@@ -343,14 +343,14 @@ services:
     container_name: recyclarr
     # The official image is rootless and does not support PUID/PGID. Run it as
     # the same Synology account as the rest of the stack so /config is writable.
-    user: "1027:100"
+    user: "${PUID:-1027}:${PGID:-100}"
     depends_on:
       recyclarr-config:
         condition: service_completed_successfully
     network_mode: "service:gluetun"
     environment:
       - TZ=${TZ:-Australia/Sydney}
-      - CRON_SCHEDULE=0 4 * * *
+      - CRON_SCHEDULE=${RECYCLARR_CRON_SCHEDULE:-0 4 * * *}
       - SONARR_API_KEY=${SONARR_API_KEY}
       - RADARR_API_KEY=${RADARR_API_KEY}
     volumes:
@@ -419,7 +419,10 @@ services:
       - /bin/sh
       - -ec
       - |
-        chown -R 1027:100 /tautulli /seerr /kometa /notifiarr
+        chown -R "$${PUID}:$${PGID}" /tautulli /seerr /kometa /notifiarr
+    environment:
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tautulli:/tautulli'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/seerr:/seerr'
@@ -458,7 +461,7 @@ services:
     image: 'ghcr.io/seerr-team/seerr:latest'
     container_name: seerr
     init: true
-    user: "1027:100"
+    user: "${PUID:-1027}:${PGID:-100}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -490,7 +493,7 @@ services:
       media-config-init:
         condition: service_completed_successfully
     network_mode: "service:gluetun"
-    user: "1027:100"
+    user: "${PUID:-1027}:${PGID:-100}"
     environment:
       - KOMETA_CONFIG_REF=${KOMETA_CONFIG_REF:-main}
     command:
@@ -513,7 +516,7 @@ services:
       kometa-config:
         condition: service_completed_successfully
     network_mode: "service:gluetun"
-    user: "1027:100"
+    user: "${PUID:-1027}:${PGID:-100}"
     environment:
       - TZ=${TZ:-Australia/Sydney}
       - KOMETA_TIMES=${KOMETA_TIMES:-05:00}
@@ -535,7 +538,7 @@ services:
       media-config-init:
         condition: service_completed_successfully
     network_mode: "service:gluetun"
-    user: "1027:100"
+    user: "${PUID:-1027}:${PGID:-100}"
     environment:
       - TZ=${TZ:-Australia/Sydney}
       - DN_API_KEY=${NOTIFIARR_API_KEY}
@@ -612,6 +615,7 @@ services:
       - PROWLARR_API_KEY=${PROWLARR_API_KEY}
       - VPN_EXPECTED_COUNTRY=${VPN_EXPECTED_COUNTRY:-CH}
       - BACKUP_MAX_AGE_DAYS=${BACKUP_MAX_AGE_DAYS:-8}
+      - MIN_FREE_SPACE_GIB=${MIN_FREE_SPACE_GIB:-500}
     command:
       - /bin/sh
       - -ec
@@ -632,6 +636,7 @@ services:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/radarr:/radarr-config:ro'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/lidarr:/lidarr-config:ro'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/gluetun:/gluetun:ro'
+      - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads:ro'
     restart: unless-stopped
     logging: *default-logging
     security_opt:

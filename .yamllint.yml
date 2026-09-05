@@ -1,0 +1,11 @@
+---
+extends: default
+
+rules:
+  # Compose commands and upstream Recyclarr template annotations are clearer
+  # when kept intact rather than wrapped or re-indented for the linter.
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  line-length:
+    max: 400

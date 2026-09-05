@@ -2,7 +2,7 @@
 ci:
   - pattern: ".github/workflows/**"
   - pattern: ".github/*.yml"
-  - pattern: ".yamllint.yaml"
+  - pattern: ".yamllint.yml"
   - pattern: ".pre-commit-config.yaml"
 
 docs:

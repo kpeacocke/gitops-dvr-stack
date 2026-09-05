@@ -7,6 +7,7 @@ name: CI/CD Pipeline
       - main
     paths:
       - 'stack/**'
+      - '.yamllint.yml'
       - '.github/workflows/portainer-deploy.yml'
   workflow_dispatch:
 
@@ -27,7 +28,7 @@ jobs:
         run: pip install yamllint
 
       - name: Lint YAML files
-        run: yamllint stack/
+        run: yamllint -c .yamllint.yml stack/
 
       - name: Validate docker-compose
         run: docker compose --env-file stack/.env.sample -f stack/docker-compose.yml config

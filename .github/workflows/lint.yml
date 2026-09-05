@@ -20,7 +20,7 @@ jobs:
         run: pip install yamllint
 
       - name: Lint YAML files
-        run: yamllint stack/
+        run: yamllint -c .yamllint.yml stack/
 
       - name: Validate docker-compose file
-        run: docker compose -f stack/docker-compose.yml config
+        run: docker compose --env-file stack/.env.sample -f stack/docker-compose.yml config
