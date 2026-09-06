@@ -15,6 +15,10 @@ databases while still detecting drift.
 The `config-ops-sync` one-shot service downloads the versioned audit script to
 persistent storage. `config-audit` runs it at startup and every six hours. A
 failed audit makes that container unhealthy without interrupting downloads.
+Increment `CONFIG_OPS_VERSION` whenever the audit script changes so Compose
+recreates both the one-shot sync and the long-running auditor. The equivalent
+`RECYCLARR_CONFIG_VERSION` and `KOMETA_CONFIG_VERSION` values force their
+one-shot Git template loaders to run after a versioned configuration change.
 
 ## Deliberately Not Stored in Git
 
