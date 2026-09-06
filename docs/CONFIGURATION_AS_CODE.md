@@ -38,7 +38,9 @@ defaults to `CH` because Gluetun is pinned to Switzerland.
 From Portainer, open the `config-audit` container log. A successful run ends
 with `Audit passed.` To force a new run, restart only `config-audit`.
 
-The audit verifies all interactive service endpoints, Swiss VPN egress,
-Prowlarr links for Sonarr/Radarr/Lidarr, absence of Transmission, localhost
-client addressing, NZB-first delay profiles, qBittorrent's Gluetun-managed
-listening port, and fresh native backups.
+The audit verifies all interactive service endpoints, public reverse-proxy
+routes, Swiss VPN egress, Arr health APIs, Prowlarr links and enabled indexers,
+absence of Transmission, localhost client addressing, NZB-first delay profiles,
+qBittorrent categories and its Gluetun-managed listening port, free space, and
+fresh native backups. Public routes deliberately accept authentication responses
+(HTTP 401/403) as proof that the proxy and upstream are reachable.

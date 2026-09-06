@@ -16,6 +16,20 @@ check_http() {
   fi
 }
 
+check_public_http() {
+  name=$1
+  url=$2
+  code=$(curl -ksS -L --max-time 20 -o /dev/null -w '%{http_code}' "$url" || true)
+  case "$code" in
+    200|204|301|302|303|307|308|401|403)
+      ok "$name public route responded with HTTP $code"
+      ;;
+    *)
+      fail "$name public route returned HTTP ${code:-unavailable}: $url"
+      ;;
+  esac
+}
+
 check_recent_backup() {
   name=$1
   directory=$2
@@ -109,6 +123,97 @@ check_prowlarr_apps() {
   done
 }
 
+check_arr_health() {
+  app=$1
+  base=$2
+  key=$3
+  api_version=${4:-v3}
+  health=$(api_json "$base/api/$api_version/health" "$key") || {
+    fail "$app health API failed"
+    return
+  }
+  errors=$(printf '%s' "$health" | jq '[.[] | select((.type // "") | ascii_downcase == "error")] | length')
+  [ "$errors" -eq 0 ] && ok "$app reports no health errors" || fail "$app reports $errors health error(s)"
+}
+
+check_prowlarr_indexers() {
+  key=${PROWLARR_API_KEY:-}
+  minimum=${MIN_ENABLED_INDEXERS:-1}
+  indexers=$(api_json "http://localhost:9696/api/v1/indexer" "$key") || {
+    fail "Prowlarr indexer API failed"
+    return
+  }
+  enabled=$(printf '%s' "$indexers" | jq '[.[] | select(.enable == true)] | length')
+  [ "$enabled" -ge "$minimum" ] && ok "Prowlarr has $enabled enabled indexer(s)" || fail "Prowlarr has $enabled enabled indexer(s), expected at least $minimum"
+}
+
+check_qbittorrent_categories() {
+  categories=$(curl -fsS --max-time 20 http://localhost:8081/api/v2/torrents/categories) || {
+    fail "qBittorrent categories API failed"
+    return
+  }
+
+  for spec in "Sonarr|http://localhost:8989|$SONARR_API_KEY|v3" "Radarr|http://localhost:7878|$RADARR_API_KEY|v3" "Lidarr|http://localhost:8686|$LIDARR_API_KEY|v1"; do
+    old_ifs=$IFS
+    IFS='|'
+    set -- $spec
+    IFS=$old_ifs
+    app=$1 base=$2 key=$3 api_version=$4
+    clients=$(api_json "$base/api/$api_version/downloadclient" "$key") || {
+      fail "$app download-client API failed while checking categories"
+      continue
+    }
+    category=$(printf '%s' "$clients" | jq -r '[.[] | select(.implementation == "QBittorrent" and .enable == true) | .fields[] | select(.name == "category") | .value][0] // empty')
+    if [ -z "$category" ]; then
+      fail "$app qBittorrent category is empty"
+    elif printf '%s' "$categories" | jq -e --arg category "$category" 'has($category)' >/dev/null; then
+      ok "$app qBittorrent category exists: $category"
+    else
+      fail "$app qBittorrent category is missing: $category"
+    fi
+  done
+}
+
+check_seerr_initialized() {
+  settings=$(curl -fsS --max-time 20 http://localhost:5055/api/v1/settings/public) || {
+    fail "Seerr public-settings API failed"
+    return
+  }
+  initialized=$(printf '%s' "$settings" | jq -r '.initialized // false')
+  [ "$initialized" = true ] && ok "Seerr setup is initialized" || fail "Seerr setup is not initialized"
+}
+
+check_tautulli_configured() {
+  config=/tautulli-config/config.ini
+  if [ ! -r "$config" ]; then
+    fail "Tautulli config is unavailable"
+    return
+  fi
+  first_run=$(sed -n 's/^first_run = //p' "$config" | head -n 1 | tr -d ' "')
+  username=$(sed -n 's/^http_username = //p' "$config" | head -n 1 | tr -d ' "')
+  token=$(sed -n 's/^pms_token = //p' "$config" | head -n 1 | tr -d ' "')
+  pms_ip=$(sed -n 's/^pms_ip = //p' "$config" | head -n 1 | tr -d ' "')
+  [ "$first_run" = 0 ] && [ -n "$username" ] && [ -n "$token" ] && [ "$pms_ip" != 127.0.0.1 ] && [ "$pms_ip" != localhost ] &&
+    ok "Tautulli is secured and linked to a non-local Plex server" ||
+    fail "Tautulli setup, authentication, or Plex linkage is incomplete"
+}
+
+check_kometa_last_run() {
+  log=/kometa-config/logs/meta.log
+  if [ ! -r "$log" ]; then
+    fail "Kometa log is unavailable; no successful run can be proven"
+    return
+  fi
+  recent=$(tail -n 1500 "$log")
+  if printf '%s' "$recent" | grep -q 'Config Error:'; then
+    fail "Kometa's recent log contains a configuration error"
+  elif printf '%s' "$recent" | grep -q 'Finished .* Run'; then
+    ok "Kometa has a recent completed run without configuration errors"
+  else
+    fail "Kometa has no recent completed run"
+  fi
+}
+
 
 check_qbittorrent_vpn_port() {
   preferences=$(curl -fsS --max-time 20 http://localhost:8081/api/v2/app/preferences) || {
@@ -154,14 +259,29 @@ check_delay_profiles Sonarr http://localhost:8989 "$SONARR_API_KEY"
 check_delay_profiles Radarr http://localhost:7878 "$RADARR_API_KEY"
 check_download_clients Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
 check_delay_profiles Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
+check_arr_health Sonarr http://localhost:8989 "$SONARR_API_KEY"
+check_arr_health Radarr http://localhost:7878 "$RADARR_API_KEY"
+check_arr_health Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
+check_arr_health Prowlarr http://localhost:9696 "$PROWLARR_API_KEY" v1
 check_prowlarr_apps
+check_prowlarr_indexers
 check_qbittorrent_vpn_port
+check_qbittorrent_categories
+check_seerr_initialized
+check_tautulli_configured
+check_kometa_last_run
 check_free_space /downloads
 
 check_recent_backup Sonarr /sonarr-config/Backups
 check_recent_backup Radarr /radarr-config/Backups
 check_recent_backup Lidarr /lidarr-config/Backups
 check_recent_backup Prowlarr /prowlarr-config/Backups
+
+public_domain=${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}
+public_services=${PUBLIC_SERVICE_NAMES:-"prowlarr sabnzbd qbittorrent sonarr radarr bazarr lidarr mylar lazylibrarian cleanuparr tautulli seerr notifiarr uptime plex"}
+for service in $public_services; do
+  check_public_http "$service" "https://$service.$public_domain"
+done
 
 if [ "$failures" -gt 0 ]; then
   printf 'Audit failed with %s finding(s).\n' "$failures" >&2

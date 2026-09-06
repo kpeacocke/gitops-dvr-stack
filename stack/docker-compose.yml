@@ -616,6 +616,9 @@ services:
       - VPN_EXPECTED_COUNTRY=${VPN_EXPECTED_COUNTRY:-CH}
       - BACKUP_MAX_AGE_DAYS=${BACKUP_MAX_AGE_DAYS:-8}
       - MIN_FREE_SPACE_GIB=${MIN_FREE_SPACE_GIB:-500}
+      - MIN_ENABLED_INDEXERS=${MIN_ENABLED_INDEXERS:-1}
+      - PUBLIC_BASE_DOMAIN=${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}
+      - PUBLIC_SERVICE_NAMES=${PUBLIC_SERVICE_NAMES:-prowlarr sabnzbd qbittorrent sonarr radarr bazarr lidarr mylar lazylibrarian cleanuparr tautulli seerr notifiarr uptime plex}
     command:
       - /bin/sh
       - -ec
@@ -636,6 +639,8 @@ services:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/radarr:/radarr-config:ro'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/lidarr:/lidarr-config:ro'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/gluetun:/gluetun:ro'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tautulli:/tautulli-config:ro'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/kometa:/kometa-config:ro'
       - '${DOWNLOADS_PATH:?Set DOWNLOADS_PATH in .env}:/downloads:ro'
     restart: unless-stopped
     logging: *default-logging
