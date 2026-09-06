@@ -192,10 +192,11 @@ check_tautulli_configured() {
     return
   fi
   first_run=$(sed -n 's/^first_run = //p' "$config" | head -n 1 | tr -d ' "')
+  first_run_complete=$(sed -n 's/^first_run_complete = //p' "$config" | head -n 1 | tr -d ' "')
   username=$(sed -n 's/^http_username = //p' "$config" | head -n 1 | tr -d ' "')
   token=$(sed -n 's/^pms_token = //p' "$config" | head -n 1 | tr -d ' "')
   pms_ip=$(sed -n 's/^pms_ip = //p' "$config" | head -n 1 | tr -d ' "')
-  [ "$first_run" = 0 ] && [ -n "$username" ] && [ -n "$token" ] && [ "$pms_ip" != 127.0.0.1 ] && [ "$pms_ip" != localhost ] &&
+  { [ "$first_run" = 0 ] || [ "$first_run_complete" = 1 ]; } && [ -n "$username" ] && [ -n "$token" ] && [ "$pms_ip" != 127.0.0.1 ] && [ "$pms_ip" != localhost ] &&
     ok "Tautulli is secured and linked to a non-local Plex server" ||
     fail "Tautulli setup, authentication, or Plex linkage is incomplete"
 }

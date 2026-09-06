@@ -572,7 +572,7 @@ services:
     environment:
       - CONFIG_OPS_REF=${CONFIG_OPS_REF:-main}
     labels:
-      - "config-version=${CONFIG_OPS_VERSION:-2026-09-06.1}"
+      - "config-version=${CONFIG_OPS_VERSION:-2026-09-06.2}"
     command:
       - /bin/sh
       - -ec
@@ -626,7 +626,7 @@ services:
       - PUBLIC_BASE_DOMAIN=${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}
       - PUBLIC_SERVICE_NAMES=${PUBLIC_SERVICE_NAMES:-prowlarr sabnzbd qbittorrent sonarr radarr bazarr lidarr mylar lazylibrarian cleanuparr tautulli seerr notifiarr uptime plex}
     labels:
-      - "config-version=${CONFIG_OPS_VERSION:-2026-09-06.1}"
+      - "config-version=${CONFIG_OPS_VERSION:-2026-09-06.2}"
     command:
       - /bin/sh
       - -ec
