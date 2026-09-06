@@ -213,7 +213,15 @@ check_kometa_last_run() {
   elif printf '%s' "$recent" | grep -q 'Finished .* Run'; then
     ok "Kometa has a recent completed run without configuration errors"
   else
-    fail "Kometa has no recent completed run"
+    stale_minutes=${KOMETA_STALE_MINUTES:-45}
+    modified=$(stat -c '%Y' "$log" 2>/dev/null || printf '0')
+    now=$(date +%s)
+    age_minutes=$(((now - modified) / 60))
+    if [ "$modified" -gt 0 ] && [ "$age_minutes" -ge "$stale_minutes" ]; then
+      fail "Kometa has no completed run and its log is stale (${age_minutes} minutes; limit ${stale_minutes})"
+    else
+      fail "Kometa has no recent completed run (log age ${age_minutes} minutes)"
+    fi
   fi
 }
 

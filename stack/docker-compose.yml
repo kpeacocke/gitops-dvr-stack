@@ -6,11 +6,18 @@ x-logging: &default-logging
     max-file: "5"
     tag: "{{.Name}}"
 
+x-service-labels: &service-labels
+  com.ambitiouscake.managed-by: "portainer-gitops"
+  com.ambitiouscake.environment: "production"
+  com.ambitiouscake.stack: "dvr"
+  com.centurylinklabs.watchtower.enable: "true"
+
 services:
   gluetun:
     image: 'qmcgaw/gluetun:latest'
     container_name: gluetun
     hostname: dvr-vpn
+    labels: *service-labels
     networks:
       - gluetun
     cap_add:
@@ -71,6 +78,7 @@ services:
   flaresolverr:
     image: 'ghcr.io/flaresolverr/flaresolverr:latest'
     container_name: flaresolverr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -91,6 +99,7 @@ services:
   prowlarr:
     image: 'lscr.io/linuxserver/prowlarr:latest'
     container_name: prowlarr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -114,6 +123,7 @@ services:
   sabnzbd:
     image: 'lscr.io/linuxserver/sabnzbd:latest'
     container_name: sabnzbd
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -138,6 +148,7 @@ services:
   qbittorrent:
     image: 'lscr.io/linuxserver/qbittorrent:latest'
     container_name: qbittorrent
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -163,6 +174,7 @@ services:
   sonarr:
     image: 'lscr.io/linuxserver/sonarr:latest'
     container_name: sonarr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -188,6 +200,7 @@ services:
   radarr:
     image: 'lscr.io/linuxserver/radarr:latest'
     container_name: radarr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -213,6 +226,7 @@ services:
   bazarr:
     image: 'lscr.io/linuxserver/bazarr:latest'
     container_name: bazarr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -238,6 +252,7 @@ services:
   lidarr:
     image: 'lscr.io/linuxserver/lidarr:latest'
     container_name: lidarr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -263,6 +278,7 @@ services:
   mylar:
     image: 'lscr.io/linuxserver/mylar3:latest'
     container_name: mylar
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -288,6 +304,7 @@ services:
   lazylibrarian:
     image: 'lscr.io/linuxserver/lazylibrarian:latest'
     container_name: lazylibrarian
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -313,6 +330,9 @@ services:
   recyclarr-config:
     image: 'alpine:3.22'
     container_name: recyclarr-config
+    labels:
+      <<: *service-labels
+      config-version: "${RECYCLARR_CONFIG_VERSION:-2026-09-06.1}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -320,8 +340,6 @@ services:
     user: "${PUID:-1027}:${PGID:-100}"
     environment:
       - RECYCLARR_CONFIG_REF=${RECYCLARR_CONFIG_REF:-main}
-    labels:
-      - "config-version=${RECYCLARR_CONFIG_VERSION:-2026-09-06.1}"
     # Portainer's Git checkout is disposable and cannot be used as a durable
     # bind-mount source. Copy the versioned templates into persistent config
     # storage over the VPN before Recyclarr starts.
@@ -343,6 +361,7 @@ services:
   recyclarr:
     image: 'ghcr.io/recyclarr/recyclarr:8'
     container_name: recyclarr
+    labels: *service-labels
     # The official image is rootless and does not support PUID/PGID. Run it as
     # the same Synology account as the rest of the stack so /config is writable.
     user: "${PUID:-1027}:${PGID:-100}"
@@ -364,6 +383,7 @@ services:
   unpackerr:
     image: 'golift/unpackerr:latest'
     container_name: unpackerr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -393,6 +413,7 @@ services:
   cleanuparr:
     image: 'ghcr.io/cleanuparr/cleanuparr:latest'
     container_name: cleanuparr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -417,6 +438,7 @@ services:
   media-config-init:
     image: 'alpine:3.22'
     container_name: media-config-init
+    labels: *service-labels
     command:
       - /bin/sh
       - -ec
@@ -437,6 +459,7 @@ services:
   tautulli:
     image: 'lscr.io/linuxserver/tautulli:latest'
     container_name: tautulli
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -462,6 +485,7 @@ services:
   seerr:
     image: 'ghcr.io/seerr-team/seerr:latest'
     container_name: seerr
+    labels: *service-labels
     init: true
     user: "${PUID:-1027}:${PGID:-100}"
     depends_on:
@@ -489,6 +513,9 @@ services:
   kometa-config:
     image: 'alpine:3.22'
     container_name: kometa-config
+    labels:
+      <<: *service-labels
+      config-version: "${KOMETA_CONFIG_VERSION:-2026-09-06.3}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -498,8 +525,6 @@ services:
     user: "${PUID:-1027}:${PGID:-100}"
     environment:
       - KOMETA_CONFIG_REF=${KOMETA_CONFIG_REF:-main}
-    labels:
-      - "config-version=${KOMETA_CONFIG_VERSION:-2026-09-06.2}"
     command:
       - /bin/sh
       - -ec
@@ -516,6 +541,10 @@ services:
   kometa:
     image: 'kometateam/kometa:latest'
     container_name: kometa
+    labels: *service-labels
+    cpus: "${KOMETA_CPU_LIMIT:-1.50}"
+    mem_limit: "${KOMETA_MEMORY_LIMIT:-2g}"
+    pids_limit: 256
     depends_on:
       kometa-config:
         condition: service_completed_successfully
@@ -536,6 +565,7 @@ services:
   notifiarr:
     image: 'golift/notifiarr:latest'
     container_name: notifiarr
+    labels: *service-labels
     depends_on:
       gluetun:
         condition: service_healthy
@@ -565,14 +595,15 @@ services:
   config-ops-sync:
     image: 'alpine:3.22'
     container_name: config-ops-sync
+    labels:
+      <<: *service-labels
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-06.3}"
     depends_on:
       gluetun:
         condition: service_healthy
     network_mode: "service:gluetun"
     environment:
       - CONFIG_OPS_REF=${CONFIG_OPS_REF:-main}
-    labels:
-      - "config-version=${CONFIG_OPS_VERSION:-2026-09-06.2}"
     command:
       - /bin/sh
       - -ec
@@ -590,6 +621,9 @@ services:
   config-audit:
     image: 'alpine:3.22'
     container_name: config-audit
+    labels:
+      <<: *service-labels
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-06.3}"
     depends_on:
       config-ops-sync:
         condition: service_completed_successfully
@@ -623,10 +657,9 @@ services:
       - BACKUP_MAX_AGE_DAYS=${BACKUP_MAX_AGE_DAYS:-8}
       - MIN_FREE_SPACE_GIB=${MIN_FREE_SPACE_GIB:-500}
       - MIN_ENABLED_INDEXERS=${MIN_ENABLED_INDEXERS:-1}
+      - KOMETA_STALE_MINUTES=${KOMETA_STALE_MINUTES:-45}
       - PUBLIC_BASE_DOMAIN=${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}
       - PUBLIC_SERVICE_NAMES=${PUBLIC_SERVICE_NAMES:-prowlarr sabnzbd qbittorrent sonarr radarr bazarr lidarr mylar lazylibrarian cleanuparr tautulli seerr notifiarr uptime plex}
-    labels:
-      - "config-version=${CONFIG_OPS_VERSION:-2026-09-06.2}"
     command:
       - /bin/sh
       - -ec
