@@ -163,7 +163,9 @@ check_qbittorrent_categories() {
       fail "$app download-client API failed while checking categories"
       continue
     }
-    category=$(printf '%s' "$clients" | jq -r '[.[] | select(.implementation == "QBittorrent" and .enable == true) | .fields[] | select(.name == "category") | .value][0] // empty')
+    # Current Arr releases use media-specific names (tvCategory,
+    # movieCategory, musicCategory) rather than the legacy category field.
+    category=$(printf '%s' "$clients" | jq -r '[.[] | select(.implementation == "QBittorrent" and .enable == true) | .fields[] | select(.name | test("^(tv|movie|music)Category$")) | .value][0] // empty')
     if [ -z "$category" ]; then
       fail "$app qBittorrent category is empty"
     elif printf '%s' "$categories" | jq -e --arg category "$category" 'has($category)' >/dev/null; then
