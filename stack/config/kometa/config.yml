@@ -27,12 +27,12 @@ settings:
     - collections
     - overlays
 plex:
-  url: <<plex_url>>
-  token: <<plex_token>>
+  url: <<plexurl>>
+  token: <<plextoken>>
   timeout: 60
   clean_bundles: false
   empty_trash: false
   optimize: false
 tmdb:
-  apikey: <<tmdb_apikey>>
+  apikey: <<tmdbapikey>>
   language: en

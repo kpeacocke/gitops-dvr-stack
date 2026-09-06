@@ -499,7 +499,7 @@ services:
     environment:
       - KOMETA_CONFIG_REF=${KOMETA_CONFIG_REF:-main}
     labels:
-      - "config-version=${KOMETA_CONFIG_VERSION:-2026-09-06.1}"
+      - "config-version=${KOMETA_CONFIG_VERSION:-2026-09-06.2}"
     command:
       - /bin/sh
       - -ec
@@ -524,9 +524,9 @@ services:
     environment:
       - TZ=${TZ:-Australia/Sydney}
       - KOMETA_TIMES=${KOMETA_TIMES:-05:00}
-      - KOMETA_PLEX_URL=${KOMETA_PLEX_URL:-https://plex.ambitiouscake.com}
-      - KOMETA_PLEX_TOKEN=${KOMETA_PLEX_TOKEN}
-      - KOMETA_TMDB_APIKEY=${KOMETA_TMDB_APIKEY}
+      - KOMETA_PLEXURL=${KOMETA_PLEX_URL:-https://plex.ambitiouscake.com}
+      - KOMETA_PLEXTOKEN=${KOMETA_PLEX_TOKEN}
+      - KOMETA_TMDBAPIKEY=${KOMETA_TMDB_APIKEY}
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/kometa:/config'
     restart: unless-stopped
