@@ -542,7 +542,6 @@ services:
     image: 'kometateam/kometa:latest'
     container_name: kometa
     labels: *service-labels
-    cpus: "${KOMETA_CPU_LIMIT:-1.50}"
     mem_limit: "${KOMETA_MEMORY_LIMIT:-2g}"
     pids_limit: 256
     depends_on:
