@@ -196,9 +196,12 @@ check_tautulli_configured() {
   username=$(sed -n 's/^http_username = //p' "$config" | head -n 1 | tr -d ' "')
   token=$(sed -n 's/^pms_token = //p' "$config" | head -n 1 | tr -d ' "')
   pms_ip=$(sed -n 's/^pms_ip = //p' "$config" | head -n 1 | tr -d ' "')
+  pms_url_manual=$(sed -n 's/^pms_url_manual = //p' "$config" | head -n 1 | tr -d ' "')
+  pms_url_override=$(sed -n 's/^pms_url_override = //p' "$config" | head -n 1 | tr -d ' "')
   { [ "$first_run" = 0 ] || [ "$first_run_complete" = 1 ]; } && [ -n "$username" ] && [ -n "$token" ] && [ "$pms_ip" != 127.0.0.1 ] && [ "$pms_ip" != localhost ] &&
-    ok "Tautulli is secured and linked to a non-local Plex server" ||
-    fail "Tautulli setup, authentication, or Plex linkage is incomplete"
+    [ "$pms_url_manual" = 1 ] && [ "$pms_url_override" = "https://plex.${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}" ] &&
+    ok "Tautulli is secured and uses the stable Plex URL override" ||
+    fail "Tautulli setup, authentication, or stable Plex URL override is incomplete"
 }
 
 check_kometa_last_run() {

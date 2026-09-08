@@ -596,7 +596,7 @@ services:
     container_name: config-ops-sync
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-06.3}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-08.1}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -622,7 +622,7 @@ services:
     container_name: config-audit
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-06.3}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-08.1}"
     depends_on:
       config-ops-sync:
         condition: service_completed_successfully
