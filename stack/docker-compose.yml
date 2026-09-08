@@ -352,9 +352,17 @@ services:
           wget -q -O "/config/configs/$${file}" \
             "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${RECYCLARR_CONFIG_REF}/stack/config/recyclarr/configs/$${file}"
         done
+        touch /tmp/config-ready
+        exec tail -f /dev/null
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/recyclarr:/config'
-    restart: "no"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/config-ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -367,7 +375,7 @@ services:
     user: "${PUID:-1027}:${PGID:-100}"
     depends_on:
       recyclarr-config:
-        condition: service_completed_successfully
+        condition: service_healthy
     network_mode: "service:gluetun"
     environment:
       - TZ=${TZ:-Australia/Sydney}
@@ -450,6 +458,8 @@ services:
       - -ec
       - |
         chown -R "$${PUID}:$${PGID}" /tautulli /seerr /kometa /notifiarr
+        touch /tmp/config-ready
+        exec tail -f /dev/null
     environment:
       - PUID=${PUID:-1027}
       - PGID=${PGID:-100}
@@ -458,7 +468,13 @@ services:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/seerr:/seerr'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/kometa:/kometa'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/notifiarr:/notifiarr'
-    restart: "no"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/config-ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -470,7 +486,7 @@ services:
       gluetun:
         condition: service_healthy
       media-config-init:
-        condition: service_completed_successfully
+        condition: service_healthy
     network_mode: "service:gluetun"
     environment:
       - PUID=${PUID:-1027}
@@ -498,7 +514,7 @@ services:
       gluetun:
         condition: service_healthy
       media-config-init:
-        condition: service_completed_successfully
+        condition: service_healthy
     network_mode: "service:gluetun"
     environment:
       - LOG_LEVEL=info
@@ -526,7 +542,7 @@ services:
       gluetun:
         condition: service_healthy
       media-config-init:
-        condition: service_completed_successfully
+        condition: service_healthy
     network_mode: "service:gluetun"
     user: "${PUID:-1027}:${PGID:-100}"
     environment:
@@ -538,9 +554,17 @@ services:
         mkdir -p /config
         wget -q -O /config/config.yml \
           "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${KOMETA_CONFIG_REF}/stack/config/kometa/config.yml"
+        touch /tmp/config-ready
+        exec tail -f /dev/null
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/kometa:/config'
-    restart: "no"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/config-ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -552,7 +576,7 @@ services:
     pids_limit: 256
     depends_on:
       kometa-config:
-        condition: service_completed_successfully
+        condition: service_healthy
     network_mode: "service:gluetun"
     user: "${PUID:-1027}:${PGID:-100}"
     environment:
@@ -581,7 +605,7 @@ services:
       gluetun:
         condition: service_healthy
       media-config-init:
-        condition: service_completed_successfully
+        condition: service_healthy
     network_mode: "service:gluetun"
     user: "${PUID:-1027}:${PGID:-100}"
     environment:
@@ -623,9 +647,17 @@ services:
         wget -q -O /config/audit.sh \
           "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${CONFIG_OPS_REF}/stack/config/config-ops/audit.sh"
         chmod 0755 /config/audit.sh
+        touch /tmp/config-ready
+        exec tail -f /dev/null
     volumes:
       - config-ops:/config
-    restart: "no"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/config-ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
@@ -637,7 +669,7 @@ services:
       config-version: "${CONFIG_OPS_VERSION:-2026-09-08.1}"
     depends_on:
       config-ops-sync:
-        condition: service_completed_successfully
+        condition: service_healthy
       prowlarr:
         condition: service_healthy
       sabnzbd:
