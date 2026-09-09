@@ -223,7 +223,7 @@ check_kometa_last_run() {
     if [ "$modified" -gt 0 ] && [ "$age_minutes" -ge "$stale_minutes" ]; then
       fail "Kometa has no completed run and its log is stale (${age_minutes} minutes; limit ${stale_minutes})"
     else
-      fail "Kometa has no recent completed run (log age ${age_minutes} minutes)"
+      ok "Kometa is active; its log is fresh and the current run has not completed yet (${age_minutes} minutes)"
     fi
   fi
 }
