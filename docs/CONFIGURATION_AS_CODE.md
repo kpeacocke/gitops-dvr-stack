@@ -28,6 +28,18 @@ with a minimum custom-format score of `0`: Radarr's HD/UHD Bluray + WEB and
 Sonarr's WEB-1080p/WEB-2160p. HDR10 and compatible Dolby Vision are not banned
 by this rule; the existing quality and other custom-format rules still apply.
 
+The same penalty also covers the six existing profiles on each live server:
+`Any`, `SD`, `HD-720p`, `HD-1080p`, `Ultra-HD`, and `HD - 720p/1080p`.
+Only their minimum format score and the fallback penalty are managed; their
+quality ordering and other scores are preserved. Existing media keeps its
+profile assignment. Include any newly created profiles in this policy too.
+
+`radarr.yml` and `sonarr.yml` each define one instance per server, containing
+both guide-backed profiles and the existing profiles. Separate instances for
+the same URL cause Recyclarr's Split Instances error. The template loader
+archives the four legacy files under `/config/legacy-profile-configs` after
+downloading both consolidated replacements.
+
 This is acquisition filtering based on release metadata, not a media probe.
 The upstream format targets WEB-DL/WEBRip Dolby Vision without an HDR label
 and includes upstream Hulu/Flights exceptions. It does not inspect the actual
@@ -42,15 +54,15 @@ References:
 After merging and redeploying through Portainer:
 
 1. If Portainer explicitly sets `RECYCLARR_CONFIG_VERSION`, update it to
-   `2026-09-13.2` so `recyclarr-config` reloads the templates. Otherwise the
+   `2026-09-13.3` so `recyclarr-config` reloads the templates. Otherwise the
    Compose default handles this. A pinned `RECYCLARR_CONFIG_REF` must also
    include the policy change.
 2. Wait for `recyclarr-config` to be healthy, then preview and apply from the
    NAS: `docker exec recyclarr recyclarr sync --preview`, followed by
    `docker exec recyclarr recyclarr sync`. Alternatively, wait for the
    configured scheduled sync.
-3. Verify the format score is `-10000` and minimum score is `0` in each of
-   the four profiles. Confirm the intended movies/series use these profiles.
+3. Verify the format score is `-10000` and minimum score is `0` in all eight
+   profiles on each server. Confirm no newly added profiles lack the rule.
 4. Use an interactive search to check a DV-only WEB release is rejected and
    a DV HDR10 release avoids this penalty. Do not manually grab rejected
    releases. Verify actual playback/fallback for any suspect release.
