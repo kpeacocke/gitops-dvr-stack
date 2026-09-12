@@ -20,6 +20,41 @@ recreates both the one-shot sync and the long-running auditor. The equivalent
 `RECYCLARR_CONFIG_VERSION` and `KOMETA_CONFIG_VERSION` values force their
 one-shot Git template loaders to run after a versioned configuration change.
 
+## Dolby Vision Compatibility
+
+The Samsung TV's Plex app requires HDR10 fallback. All four Git-managed
+profiles explicitly score TRaSH's `DV (w/o HDR fallback)` format at `-10000`,
+with a minimum custom-format score of `0`: Radarr's HD/UHD Bluray + WEB and
+Sonarr's WEB-1080p/WEB-2160p. HDR10 and compatible Dolby Vision are not banned
+by this rule; the existing quality and other custom-format rules still apply.
+
+This is acquisition filtering based on release metadata, not a media probe.
+The upstream format targets WEB-DL/WEBRip Dolby Vision without an HDR label
+and includes upstream Hulu/Flights exceptions. It does not inspect the actual
+Dolby Vision profile or prove fallback exists in mislabeled files. Existing
+files are not converted, deleted, or automatically searched for replacement.
+
+References:
+
+- [Radarr format](https://github.com/TRaSH-Guides/Guides/blob/master/docs/json/radarr/cf/dv-wo-hdr-fallback.json)
+- [Sonarr format](https://github.com/TRaSH-Guides/Guides/blob/master/docs/json/sonarr/cf/dv-wo-hdr-fallback.json)
+
+After merging and redeploying through Portainer:
+
+1. If Portainer explicitly sets `RECYCLARR_CONFIG_VERSION`, update it to
+   `2026-09-13.1` so `recyclarr-config` reloads the templates. Otherwise the
+   Compose default handles this. A pinned `RECYCLARR_CONFIG_REF` must also
+   include the policy change.
+2. Wait for `recyclarr-config` to be healthy, then preview and apply from the
+   NAS: `docker exec recyclarr recyclarr sync --preview`, followed by
+   `docker exec recyclarr recyclarr sync`. Alternatively, wait for the
+   configured scheduled sync.
+3. Verify the format score is `-10000` and minimum score is `0` in each of
+   the four profiles. Confirm the intended movies/series use these profiles.
+4. Use an interactive search to check a DV-only WEB release is rejected and
+   a DV HDR10 release avoids this penalty. Do not manually grab rejected
+   releases. Verify actual playback/fallback for any suspect release.
+
 ## Deliberately Not Stored in Git
 
 - API keys, passwords, tracker cookies, VPN credentials, and Plex tokens.
