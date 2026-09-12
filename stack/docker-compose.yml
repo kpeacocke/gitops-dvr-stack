@@ -332,7 +332,7 @@ services:
     container_name: recyclarr-config
     labels:
       <<: *service-labels
-      config-version: "${RECYCLARR_CONFIG_VERSION:-2026-09-13.1}"
+      config-version: "${RECYCLARR_CONFIG_VERSION:-2026-09-13.2}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -348,9 +348,19 @@ services:
       - -ec
       - |
         mkdir -p /config/configs
-        for file in hd-bluray-web.yml uhd-bluray-web.yml web-1080p.yml web-2160p.yml; do
-          wget -q -O "/config/configs/$${file}" \
+        for file in radarr.yml sonarr.yml; do
+          wget -q -O "/config/configs/$${file}.pending" \
             "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${RECYCLARR_CONFIG_REF}/stack/config/recyclarr/configs/$${file}"
+        done
+        for file in radarr.yml sonarr.yml; do
+          mv "/config/configs/$${file}.pending" "/config/configs/$${file}"
+        done
+        # Preserve old templates outside the auto-loaded configs directory.
+        mkdir -p /config/legacy-profile-configs
+        for file in hd-bluray-web.yml uhd-bluray-web.yml web-1080p.yml web-2160p.yml; do
+          if [ -f "/config/configs/$${file}" ]; then
+            mv "/config/configs/$${file}" /config/legacy-profile-configs/
+          fi
         done
         touch /tmp/config-ready
         exec tail -f /dev/null

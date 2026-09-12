@@ -42,7 +42,7 @@ References:
 After merging and redeploying through Portainer:
 
 1. If Portainer explicitly sets `RECYCLARR_CONFIG_VERSION`, update it to
-   `2026-09-13.1` so `recyclarr-config` reloads the templates. Otherwise the
+   `2026-09-13.2` so `recyclarr-config` reloads the templates. Otherwise the
    Compose default handles this. A pinned `RECYCLARR_CONFIG_REF` must also
    include the policy change.
 2. Wait for `recyclarr-config` to be healthy, then preview and apply from the

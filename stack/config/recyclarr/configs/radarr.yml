@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/v8/config-schema.json
+---
+# One instance per Arr server; both HD and UHD profiles share this endpoint.
+# Reject DV without HDR fallback while preserving existing guide policies.
+radarr:
+  radarr:
+    base_url: http://localhost:7878
+    api_key: !env_var 'RADARR_API_KEY'
+    quality_definition:
+      type: movie
+    quality_profiles:
+      - trash_id: d1d67249d3890e49bc12e275d989a7e9
+        min_format_score: 0
+        reset_unmatched_scores:
+          enabled: true
+      - trash_id: 64fb5f9858489bdac2af690e27c8f42f
+        min_format_score: 0
+        reset_unmatched_scores:
+          enabled: true
+    custom_formats:
+      - trash_ids:
+          - 923b6abef9b17f937fab56cfcf89e1f1
+        assign_scores_to:
+          - name: HD Bluray + WEB
+            score: -10000
+          - name: UHD Bluray + WEB
+            score: -10000
+    custom_format_groups:
+      add:
+        - trash_id: f8bf8eab4617f12dfdbd16303d8da245
+        - trash_id: a3ac6af01d78e4f21fcb75f601ac96df
+        - trash_id: ff204bbcecdd487d1cefcefdbf0c278d
