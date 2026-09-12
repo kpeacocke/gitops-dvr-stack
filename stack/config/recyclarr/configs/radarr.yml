@@ -17,6 +17,19 @@ radarr:
         min_format_score: 0
         reset_unmatched_scores:
           enabled: true
+      # Existing live profiles retain their quality ordering and other scores.
+      - name: Any
+        min_format_score: 0
+      - name: SD
+        min_format_score: 0
+      - name: HD-720p
+        min_format_score: 0
+      - name: HD-1080p
+        min_format_score: 0
+      - name: Ultra-HD
+        min_format_score: 0
+      - name: HD - 720p/1080p
+        min_format_score: 0
     custom_formats:
       - trash_ids:
           - 923b6abef9b17f937fab56cfcf89e1f1
@@ -24,6 +37,18 @@ radarr:
           - name: HD Bluray + WEB
             score: -10000
           - name: UHD Bluray + WEB
+            score: -10000
+          - name: Any
+            score: -10000
+          - name: SD
+            score: -10000
+          - name: HD-720p
+            score: -10000
+          - name: HD-1080p
+            score: -10000
+          - name: Ultra-HD
+            score: -10000
+          - name: HD - 720p/1080p
             score: -10000
     custom_format_groups:
       add:

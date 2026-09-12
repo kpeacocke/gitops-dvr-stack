@@ -332,7 +332,7 @@ services:
     container_name: recyclarr-config
     labels:
       <<: *service-labels
-      config-version: "${RECYCLARR_CONFIG_VERSION:-2026-09-13.2}"
+      config-version: "${RECYCLARR_CONFIG_VERSION:-2026-09-13.3}"
     depends_on:
       gluetun:
         condition: service_healthy
