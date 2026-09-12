@@ -16,8 +16,18 @@ sonarr:
 
     quality_profiles:
       - trash_id: 72dae194fc92bf828f32cde7744e51a1 # WEB-1080p
+        min_format_score: 0
         reset_unmatched_scores:
           enabled: true
+
+    # Samsung Plex requires HDR10 fallback; retain compatible Dolby Vision.
+    # Explicit assignment covers HD as well as UHD and survives score resets.
+    custom_formats:
+      - trash_ids:
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: WEB-1080p
+            score: -10000
 
     custom_format_groups:
       ################################################################################

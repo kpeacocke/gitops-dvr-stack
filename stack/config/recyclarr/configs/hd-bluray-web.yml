@@ -16,8 +16,18 @@ radarr:
 
     quality_profiles:
       - trash_id: d1d67249d3890e49bc12e275d989a7e9 # HD Bluray + WEB
+        min_format_score: 0
         reset_unmatched_scores:
           enabled: true
+
+    # Samsung Plex requires HDR10 fallback; retain compatible Dolby Vision.
+    # Explicit assignment covers HD as well as UHD and survives score resets.
+    custom_formats:
+      - trash_ids:
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: HD Bluray + WEB
+            score: -10000
 
     custom_format_groups:
       ################################################################################

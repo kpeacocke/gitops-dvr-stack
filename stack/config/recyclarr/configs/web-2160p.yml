@@ -16,8 +16,18 @@ sonarr:
 
     quality_profiles:
       - trash_id: d1498e7d189fbe6c7110ceaabb7473e6 # WEB-2160p
+        min_format_score: 0
         reset_unmatched_scores:
           enabled: true
+
+    # Samsung Plex requires HDR10 fallback; retain compatible Dolby Vision.
+    # Explicit assignment covers HD as well as UHD and survives score resets.
+    custom_formats:
+      - trash_ids:
+          - 9b27ab6498ec0f31a3353992e19434ca # DV (w/o HDR fallback)
+        assign_scores_to:
+          - name: WEB-2160p
+            score: -10000
 
     custom_format_groups:
       ################################################################################
