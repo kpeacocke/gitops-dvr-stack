@@ -36,6 +36,7 @@ services:
       - 127.0.0.1:8181:8181/tcp
       - 127.0.0.1:5055:5055/tcp
       - 127.0.0.1:5454:5454/tcp
+      - ${TDARR_BIND_IP:-192.168.3.100}:8265:8265/tcp
     environment:
       - PUID=${PUID:-1027}
       - PGID=${PGID:-100}
@@ -746,6 +747,60 @@ services:
       timeout: 5s
       retries: 1
       start_period: 120s
+  tdarr:
+    image: 'ghcr.io/haveagitgat/tdarr:latest'
+    container_name: tdarr
+    labels:
+      <<: *service-labels
+      com.centurylinklabs.watchtower.enable: "false"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "${TDARR_RENDER_GID:-937}"
+    environment:
+      - PUID=${PUID:-1027}
+      - PGID=${PGID:-100}
+      - TZ=${TZ:-Australia/Sydney}
+      - UMASK_SET=002
+      - serverIP=0.0.0.0
+      - serverPort=8266
+      - webUIPort=8265
+      - internalNode=true
+      - inContainer=true
+      - ffmpegVersion=7
+      - nodeName=DS920-QSV
+      - auth=true
+      - openBrowser=false
+      - maxLogSizeMB=10
+      - transcodegpuWorkers=1
+      - transcodecpuWorkers=0
+      - healthcheckgpuWorkers=0
+      - healthcheckcpuWorkers=1
+      - startPaused=true
+    volumes:
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/server:/app/server'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/configs:/app/configs'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/logs:/app/logs'
+      - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/pilot:/pilot'
+      - '${TDARR_CACHE_PATH:-/volume1/tdarr-cache}:/temp'
+      - '${TV_PATH:?Set TV_PATH in .env}:/tv'
+      - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies'
+    mem_limit: "${TDARR_MEMORY_LIMIT:-4g}"
+    cpus: "${TDARR_CPU_LIMIT:-2.0}"
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8265/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
 networks:
   gluetun: null
 volumes:

@@ -1,0 +1,207 @@
+{
+  "name": "DS920 SDR HEVC - validated replacement",
+  "description": "H264 MKV SDR up to 1080p only. QSV Main10 quality 22. Preserve tracks. Require 10% saving, matching duration, full decode and stream validation before replacement. Skip hardlinks and recently modified files.",
+  "tags": "DS920,QSV,SDR",
+  "flowPlugins": [
+    {
+      "name": "Input file",
+      "sourceRepo": "Community",
+      "pluginName": "inputFile",
+      "version": "1.0.0",
+      "id": "input",
+      "position": {
+        "x": 300,
+        "y": 100
+      },
+      "inputsDB": {}
+    },
+    {
+      "name": "Eligible SDR H264 only",
+      "sourceRepo": "Community",
+      "pluginName": "customFunction",
+      "version": "1.0.0",
+      "id": "eligible",
+      "position": {
+        "x": 300,
+        "y": 210
+      },
+      "inputsDB": {
+        "code": "module.exports = async (args) => {\n  const fs = require('fs').promises;\n  const file = args.inputFileObj;\n  const streams = file.ffProbeData?.streams || [];\n  const videos = streams.filter(s => s.codec_type === 'video');\n  const video = videos[0];\n  const done = (number, reason) => {\n    args.jobLog(reason);\n    return { outputFileObj: file, outputNumber: number, variables: args.variables };\n  };\n  // Conservative first deployment: MKV, one progressive SDR H.264 video.\n  if (!/\\.mkv$/i.test(file._id) || videos.length !== 1 || video.codec_name !== 'h264') {\n    return done(2, 'Skip: only single-video H.264 MKV files are eligible.');\n  }\n  if (video.width > 1920 || video.height > 1080\n      || !['bt709', 'smpte170m', 'bt470bg'].includes(video.color_transfer)\n      || !['progressive', 'unknown', undefined].includes(video.field_order)\n      || /dovi|dolby|hdr|smpte2084|arib-std-b67/i.test(JSON.stringify(video.side_data_list || []))\n      || /hdr|dolby vision/i.test(JSON.stringify(file.mediaInfo?.track?.map(t => t.HDR_Format) || []))) {\n    return done(2, 'Skip: HDR, unknown transfer, interlaced, or above 1080p.');\n  }\n  const stat = await fs.stat(file._id);\n  const pilot = file._id.startsWith('/pilot/');\n  if (stat.nlink > 1 || (!pilot && Date.now() - stat.mtimeMs < 86400000)) {\n    return done(2, 'Skip: hardlinked or modified in the last 24 hours.');\n  }\n  for (const folder of [require('path').dirname(file._id), '/temp']) {\n    const space = await fs.statfs(folder);\n    if (space.bavail * space.bsize < 500 * 1024 ** 3 + stat.size * 2) {\n      throw new Error('Insufficient headroom: preserve 500 GiB plus twice the source size.');\n    }\n  }\n  args.variables.sourceSnapshot = { size: stat.size, mtimeMs: stat.mtimeMs };\n  return done(1, 'Eligible SDR H.264 source; original retained until all checks pass.');\n};\n"
+      }
+    },
+    {
+      "name": "Begin FFmpeg",
+      "sourceRepo": "Community",
+      "pluginName": "ffmpegCommandStart",
+      "version": "1.0.0",
+      "id": "begin",
+      "position": {
+        "x": 300,
+        "y": 320
+      },
+      "inputsDB": {}
+    },
+    {
+      "name": "QSV Main10 quality 22",
+      "sourceRepo": "Community",
+      "pluginName": "customFunction",
+      "version": "1.0.0",
+      "id": "encode",
+      "position": {
+        "x": 300,
+        "y": 430
+      },
+      "inputsDB": {
+        "code": "module.exports = async (args) => {\n  const command = args.variables.ffmpegCommand;\n  if (!command?.init) throw new Error('FFmpeg command was not initialized');\n  command.shouldProcess = true;\n  command.container = 'mkv';\n  command.hardwareDecoding = false;\n  command.overallInputArguments.push('-init_hw_device', 'qsv=hw:/dev/dri/renderD128');\n  command.overallOuputArguments.push('-map_metadata', '0', '-map_chapters', '0');\n  for (const stream of command.streams) {\n    stream.outputArgs = stream.codec_type === 'video'\n      ? ['-c:{outputIndex}', 'hevc_qsv', '-global_quality', '22', '-preset', 'slow',\n        '-profile:v', 'main10', '-pix_fmt', 'p010le']\n      : ['-c:{outputIndex}', 'copy'];\n  }\n  return { outputFileObj: args.inputFileObj, outputNumber: 1, variables: args.variables };\n};\n"
+      }
+    },
+    {
+      "name": "Encode into cache",
+      "sourceRepo": "Community",
+      "pluginName": "ffmpegCommandExecute",
+      "version": "1.0.0",
+      "id": "execute",
+      "position": {
+        "x": 300,
+        "y": 540
+      },
+      "inputsDB": {}
+    },
+    {
+      "name": "Require 10 percent saving",
+      "sourceRepo": "Community",
+      "pluginName": "compareFileSizeRatio",
+      "version": "2.0.0",
+      "id": "size",
+      "position": {
+        "x": 300,
+        "y": 650
+      },
+      "inputsDB": {
+        "greaterThan": "10",
+        "lessThan": "90"
+      }
+    },
+    {
+      "name": "Check duration",
+      "sourceRepo": "Community",
+      "pluginName": "compareFileDurationRatio",
+      "version": "1.0.0",
+      "id": "duration",
+      "position": {
+        "x": 300,
+        "y": 760
+      },
+      "inputsDB": {
+        "greaterThan": "99.9",
+        "lessThan": "100.1"
+      }
+    },
+    {
+      "name": "Full decode health check",
+      "sourceRepo": "Community",
+      "pluginName": "runHealthCheck",
+      "version": "1.0.0",
+      "id": "health",
+      "position": {
+        "x": 300,
+        "y": 870
+      },
+      "inputsDB": {
+        "type": "thorough",
+        "gpuAcceleration": "none"
+      }
+    },
+    {
+      "name": "Validate streams and unchanged source",
+      "sourceRepo": "Community",
+      "pluginName": "customFunction",
+      "version": "1.0.0",
+      "id": "validate",
+      "position": {
+        "x": 300,
+        "y": 980
+      },
+      "inputsDB": {
+        "code": "module.exports = async (args) => {\n  const fs = require('fs').promises;\n  const before = args.originalLibraryFile;\n  const after = args.inputFileObj;\n  const snapshot = args.variables.sourceSnapshot;\n  const stat = await fs.stat(before._id);\n  if (!snapshot || stat.size !== snapshot.size || stat.mtimeMs !== snapshot.mtimeMs) {\n    throw new Error('Source changed during encoding; keep original.');\n  }\n  const a = before.ffProbeData?.streams || [];\n  const b = after.ffProbeData?.streams || [];\n  if (a.length !== b.length) throw new Error('Stream count changed; keep original.');\n  for (let i = 0; i < a.length; i++) {\n    if (a[i].codec_type !== b[i].codec_type) throw new Error('Stream type changed');\n    if (a[i].codec_type === 'video') {\n      if (b[i].codec_name !== 'hevc' || !/10/.test(b[i].pix_fmt || '')\n          || a[i].width !== b[i].width || a[i].height !== b[i].height) {\n        throw new Error('Unexpected video format or dimensions; keep original.');\n      }\n    } else if (a[i].codec_name !== b[i].codec_name\n        || a[i].channels !== b[i].channels\n        || a[i].tags?.language !== b[i].tags?.language) {\n      throw new Error('Audio/subtitle/attachment mismatch; keep original.');\n    }\n    for (const flag of ['default', 'forced']) {\n      if ((a[i].disposition?.[flag] || 0) !== (b[i].disposition?.[flag] || 0)) {\n        throw new Error('Track disposition changed; keep original.');\n      }\n    }\n  }\n  return { outputFileObj: after, outputNumber: 1, variables: args.variables };\n};\n"
+      }
+    },
+    {
+      "name": "Replace validated original",
+      "sourceRepo": "Community",
+      "pluginName": "replaceOriginalFile",
+      "version": "1.0.0",
+      "id": "replace",
+      "position": {
+        "x": 300,
+        "y": 1090
+      },
+      "inputsDB": {}
+    }
+  ],
+  "flowEdges": [
+    {
+      "source": "input",
+      "sourceHandle": "1",
+      "target": "eligible",
+      "targetHandle": null,
+      "id": "edge0"
+    },
+    {
+      "source": "eligible",
+      "sourceHandle": "1",
+      "target": "begin",
+      "targetHandle": null,
+      "id": "edge1"
+    },
+    {
+      "source": "begin",
+      "sourceHandle": "1",
+      "target": "encode",
+      "targetHandle": null,
+      "id": "edge2"
+    },
+    {
+      "source": "encode",
+      "sourceHandle": "1",
+      "target": "execute",
+      "targetHandle": null,
+      "id": "edge3"
+    },
+    {
+      "source": "execute",
+      "sourceHandle": "1",
+      "target": "size",
+      "targetHandle": null,
+      "id": "edge4"
+    },
+    {
+      "source": "size",
+      "sourceHandle": "1",
+      "target": "duration",
+      "targetHandle": null,
+      "id": "edge5"
+    },
+    {
+      "source": "duration",
+      "sourceHandle": "1",
+      "target": "health",
+      "targetHandle": null,
+      "id": "edge6"
+    },
+    {
+      "source": "health",
+      "sourceHandle": "1",
+      "target": "validate",
+      "targetHandle": null,
+      "id": "edge7"
+    },
+    {
+      "source": "validate",
+      "sourceHandle": "1",
+      "target": "replace",
+      "targetHandle": null,
+      "id": "edge8"
+    }
+  ]
+}
