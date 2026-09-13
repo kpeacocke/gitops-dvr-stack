@@ -748,7 +748,7 @@ services:
       retries: 1
       start_period: 120s
   tdarr:
-    image: 'ghcr.io/haveagitgat/tdarr:latest'
+    image: 'ghcr.io/haveagitgat/tdarr:latest@sha256:a56c711d22f73bc50fd728b732870fa0c01c0b0de140726c3b66cb8baa2037a8'
     container_name: tdarr
     labels:
       <<: *service-labels
@@ -779,8 +779,8 @@ services:
       - transcodegpuWorkers=1
       - transcodecpuWorkers=0
       - healthcheckgpuWorkers=0
-      - healthcheckcpuWorkers=1
-      - startPaused=true
+      - healthcheckcpuWorkers=0
+      - startPaused=false
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/server:/app/server'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/configs:/app/configs'
