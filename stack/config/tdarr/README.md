@@ -1,6 +1,6 @@
 # Tdarr on the DS920+
 
-UI: http://192.168.3.100:8265 (LAN only, authentication enabled). Server API and node ports are not published. Persistent state is under `/volume1/dkrcfg/tdarr`. The Intel render group is 937 on this NAS.
+UI: https://tdarr.ambitiouscake.com through the DSM reverse proxy, with Tdarr authentication enabled. Configure the DSM destination as HTTP `127.0.0.1:8265` and enable WebSocket headers. Port 8265 is published only on host loopback, matching the other DVR services; direct LAN access is not published. The former `TDARR_BIND_IP` setting is no longer used. Server API and node ports are not published. Persistent state is under `/volume1/dkrcfg/tdarr`. The Intel render group is 937 on this NAS.
 
 Synology requires bind source directories to exist before container startup. On a new NAS installation, create `server`, `configs`, `logs` and `pilot` inside `/volume1/dkrcfg/tdarr`, plus `/volume1/tdarr-cache`, owned by the stack's PUID/PGID (1027:100 here). Do not recursively change ownership of the media libraries. DSM does not support NanoCPUs/CFS quotas on this host; `TDARR_CPUSET=2,3` provides CPU affinity instead.
 
