@@ -100,7 +100,7 @@
     {
       "name": "Full decode health check",
       "sourceRepo": "Community",
-      "pluginName": "runHealthCheck",
+      "pluginName": "customFunction",
       "version": "1.0.0",
       "id": "health",
       "position": {
@@ -108,8 +108,7 @@
         "y": 870
       },
       "inputsDB": {
-        "type": "thorough",
-        "gpuAcceleration": "none"
+        "code": "module.exports = async (args) => {\n  const { spawn } = require('child_process');\n  // Decode every video/audio track and make even recoverable decode errors fatal.\n  await new Promise((resolve, reject) => {\n    const child = spawn(args.ffmpegPath, ['-nostdin', '-v', 'error', '-xerror',\n      '-err_detect', 'explode', '-i', args.inputFileObj._id,\n      '-map', '0:v', '-map', '0:a?', '-f', 'null', '-'], { shell: false });\n    let errors = '';\n    child.stdout.resume();\n    child.stderr.on('data', chunk => { errors = (errors + chunk.toString()).slice(-8000); });\n    child.on('error', reject);\n    child.on('close', code => {\n      if (code !== 0 || errors.trim()) reject(new Error(`Decode check failed (${code}): ${errors}`));\n      else resolve();\n    });\n  });\n  args.jobLog('Strict full video/audio decode passed.');\n  return { outputFileObj: args.inputFileObj, outputNumber: 1, variables: args.variables };\n};\n"
       }
     },
     {
