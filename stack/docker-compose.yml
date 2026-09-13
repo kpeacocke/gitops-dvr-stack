@@ -790,7 +790,7 @@ services:
       - '${TV_PATH:?Set TV_PATH in .env}:/tv'
       - '${MOVIES_PATH:?Set MOVIES_PATH in .env}:/movies'
     mem_limit: "${TDARR_MEMORY_LIMIT:-4g}"
-    cpus: "${TDARR_CPU_LIMIT:-2.0}"
+    cpuset: "${TDARR_CPUSET:-2,3}"
     restart: unless-stopped
     logging: *default-logging
     security_opt:

@@ -50,11 +50,29 @@ test('validation rejects source mutation, missing tracks and changed output', as
 });
 test('flow embeds current scripts and only validated success reaches replacement', () => {
   const flow = require('./sdr-hevc-flow.json');
-  for (const [id, file] of [['eligible', 'eligibility'], ['encode', 'encode'], ['validate', 'validate']]) {
+  for (const [id, file] of [['eligible', 'eligibility'], ['encode', 'encode'], ['validate', 'validate'], ['health', 'health']]) {
     assert.equal(flow.flowPlugins.find(p => p.id === id).inputsDB.code.replace(/\r/g, ''),
       fs.readFileSync(path.join(__dirname, `${file}.js`), 'utf8').replace(/\r/g, ''));
   }
   assert.equal(flow.flowEdges.filter(e => e.target === 'replace').length, 1);
   assert.equal(flow.flowEdges.find(e => e.target === 'replace').source, 'validate');
   assert.ok(flow.flowEdges.every(e => e.sourceHandle === '1'));
+});
+test('strict health check rejects decode errors even with a zero exit status', async () => {
+  const { EventEmitter } = require('node:events');
+  async function check(code, stderr) {
+    const context = { module: { exports: {} }, require: () => ({ spawn: (exe, flags, options) => {
+      assert.ok(flags.includes('-xerror')); assert.ok(flags.includes('0:a?'));
+      assert.equal(options.shell, false);
+      const child = new EventEmitter();
+      child.stdout = { resume() {} }; child.stderr = new EventEmitter();
+      process.nextTick(() => { child.stderr.emit('data', Buffer.from(stderr)); child.emit('close', code); });
+      return child;
+    } }) };
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname, 'health.js'), 'utf8'), context);
+    return context.module.exports(args());
+  }
+  assert.equal((await check(0, '')).outputNumber, 1);
+  await assert.rejects(check(1, ''), /Decode check failed/);
+  await assert.rejects(check(0, 'corrupt decoded frame'), /Decode check failed/);
 });
