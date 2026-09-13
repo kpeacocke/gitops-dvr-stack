@@ -748,7 +748,7 @@ services:
       retries: 1
       start_period: 120s
   tdarr:
-    image: 'ghcr.io/haveagitgat/tdarr:latest@sha256:a56c711d22f73bc50fd728b732870fa0c01c0b0de140726c3b66cb8baa2037a8'
+    image: 'ghcr.io/haveagitgat/tdarr@sha256:8dc12c1d33ac4da951d0d817de6c1d4f6a64749e862e3369b9eb84f179e63e5b'
     container_name: tdarr
     labels:
       <<: *service-labels
