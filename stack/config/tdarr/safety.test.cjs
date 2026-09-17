@@ -76,3 +76,16 @@ test('strict health check rejects decode errors even with a zero exit status', a
   await assert.rejects(check(1, ''), /Decode check failed/);
   await assert.rejects(check(0, 'corrupt decoded frame'), /Decode check failed/);
 });
+
+test('encoder explicitly preserves all track flags, including no default', async () => {
+  const a = args();
+  const dispositions = [{ default: 1, forced: 0 }, { default: 0, forced: 0 },
+    { forced: 1, hearing_impaired: 1 }, undefined];
+  a.variables.ffmpegCommand = { init: true, overallInputArguments: [],
+    overallOuputArguments: [], streams: dispositions.map((disposition, index) =>
+      ({ codec_type: index === 0 ? 'video' : 'audio', disposition })) };
+  await plugin('encode')(a);
+  assert.deepEqual(Array.from(a.variables.ffmpegCommand.streams, s => Array.from(s.outputArgs.slice(-2))),
+    [['-disposition:{outputIndex}', 'default'], ['-disposition:{outputIndex}', '0'],
+      ['-disposition:{outputIndex}', 'forced+hearing_impaired'], ['-disposition:{outputIndex}', '0']]);
+});

@@ -24,7 +24,8 @@ module.exports = async (args) => {
     }
     for (const flag of ['default', 'forced']) {
       if ((a[i].disposition?.[flag] || 0) !== (b[i].disposition?.[flag] || 0)) {
-        throw new Error('Track disposition changed; keep original.');
+        throw new Error(`Track ${i} (${a[i].codec_type}) disposition ${flag} changed: `
+          + `${a[i].disposition?.[flag] || 0} -> ${b[i].disposition?.[flag] || 0}; keep original.`);
       }
     }
   }

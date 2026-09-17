@@ -6,6 +6,7 @@ const path = require('node:path');
 const defaults = require('/app/Tdarr_Server/srcug/commonModules/jobs/libraryDefaults.js').default;
 const key = JSON.parse(fs.readFileSync('/app/configs/Tdarr_Node_Config.json')).apiKey;
 const enabled = process.argv.includes('--enable-libraries');
+const backlog = process.argv.includes('--backlog');
 const flowId = 'ds920-sdr-hevc';
 async function api(route, body) {
   const response = await fetch(`http://127.0.0.1:8266/api/v2/${route}`, {
@@ -23,6 +24,7 @@ async function save(collection, id, settings) {
     obj: { ...settings, _id: id } } });
 }
 async function main() {
+  if (backlog && !enabled) throw new Error('--backlog requires --enable-libraries');
   if (!key) throw new Error('Configure the authenticated node API key first');
   const flow = JSON.parse(fs.readFileSync(path.join(__dirname, 'sdr-hevc-flow.json')));
   await save('FlowsJSONDB', flowId, flow);
@@ -40,10 +42,10 @@ async function main() {
     library.decisionMaker.settingsPlugin = false;
     library.decisionMaker.settingsFlows = true;
     library.schedule = library.schedule.map(slot => ({ ...slot,
-      checked: Number(slot._id.split(':')[1].split('-')[0]) >= 1
-        && Number(slot._id.split(':')[1].split('-')[0]) < 6 }));
+      checked: backlog || (Number(slot._id.split(':')[1].split('-')[0]) >= 1
+        && Number(slot._id.split(':')[1].split('-')[0]) < 6) }));
     await save('LibrarySettingsJSONDB', id, library);
-    console.log(`${name}: ${enabled ? 'enabled, 01:00–06:00 local time' : 'paused'}`);
+    console.log(`${name}: ${enabled ? (backlog ? 'enabled, 24/7 backlog mode' : 'enabled, 01:00–06:00 local time') : 'paused'}`);
   }
   const nodes = await api('get-nodes');
   for (const [id, node] of Object.entries(nodes)) {
