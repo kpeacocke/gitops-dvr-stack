@@ -15,6 +15,7 @@ This repository contains a secure, maintainable Docker Compose stack to deploy a
 - � Profile sync: Recyclarr
 - 📦 Archive extraction: Unpackerr
 - 🧹 Stalled/failed download cleanup: Cleanuparr
+- Time/ratio seeding limits and import-aware removal: [seeding policy](docs/SEEDING.md)
 - 📊 Plex analytics: Tautulli
 - 🙋 Media requests: Seerr
 - 🖼️ Plex collections and overlays: Kometa

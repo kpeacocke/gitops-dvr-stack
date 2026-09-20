@@ -583,7 +583,9 @@ services:
     image: 'kometateam/kometa:latest'
     container_name: kometa
     labels: *service-labels
-    mem_limit: "${KOMETA_MEMORY_LIMIT:-2g}"
+    # TV audio-overlay scans retain episode metadata across the library.
+    # The former 2 GiB ceiling coincided with repeated worker termination.
+    mem_limit: "${KOMETA_MEMORY_LIMIT:-4g}"
     pids_limit: 256
     depends_on:
       kometa-config:
@@ -643,7 +645,7 @@ services:
     container_name: config-ops-sync
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-08.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -655,8 +657,13 @@ services:
       - -ec
       - |
         mkdir -p /config
-        wget -q -O /config/audit.sh \
-          "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${CONFIG_OPS_REF}/stack/config/config-ops/audit.sh"
+        for file in audit.sh seeding.py; do
+          wget -q -O "/config/$${file}.pending" \
+            "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${CONFIG_OPS_REF}/stack/config/config-ops/$${file}"
+        done
+        for file in audit.sh seeding.py; do
+          mv "/config/$${file}.pending" "/config/$${file}"
+        done
         chmod 0755 /config/audit.sh
         touch /tmp/config-ready
         exec tail -f /dev/null
@@ -672,12 +679,50 @@ services:
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
+  seeding-policy:
+    image: 'python:3.13-alpine'
+    container_name: seeding-policy
+    labels:
+      <<: *service-labels
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
+    depends_on:
+      config-ops-sync:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+      lidarr:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    environment:
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - LIDARR_API_KEY=${LIDARR_API_KEY}
+      - SEED_RATIO=${SEED_RATIO:-2.0}
+      - SEED_TIME_MINUTES=${SEED_TIME_MINUTES:-2880}
+    command: ["python", "/config/seeding.py", "--apply", "--loop"]
+    volumes:
+      - config-ops:/config:ro
+      - seeding-state:/state
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,time; assert time.time()-os.stat('/tmp/seeding-ok').st_mtime < 4200"]
+      interval: 60s
+      timeout: 5s
+      retries: 2
+      start_period: 120s
   config-audit:
     image: 'alpine:3.22'
     container_name: config-audit
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-08.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -722,10 +767,13 @@ services:
         while true; do
           if /config/audit.sh; then
             touch /tmp/audit-ok
+            sleep 21600
           else
             rm -f /tmp/audit-ok
+            # Recheck recovery promptly instead of retaining a failed state
+            # for six hours after the underlying problem has cleared.
+            sleep 300
           fi
-          sleep 21600
         done
     volumes:
       - config-ops:/config:ro
@@ -805,3 +853,4 @@ networks:
   gluetun: null
 volumes:
   config-ops: null
+  seeding-state: null

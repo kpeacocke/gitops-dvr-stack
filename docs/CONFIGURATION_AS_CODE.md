@@ -13,8 +13,20 @@ databases while still detecting drift.
 - Desired-state assertions in `stack/config/config-ops/audit.sh`.
 
 The `config-ops-sync` one-shot service downloads the versioned audit script to
-persistent storage. `config-audit` runs it at startup and every six hours. A
+persistent storage. `config-audit` runs it at startup and every six hours after
+success, retrying failures every five minutes. A
 failed audit makes that container unhealthy without interrupting downloads.
+
+The `seeding-policy` service applies time/ratio limits and import-aware removal
+settings separately from this read-only audit; see [SEEDING.md](./SEEDING.md).
+
+Kometa has a 4 GiB default memory ceiling. Its TV audio-overlay scan previously
+ended with `BrokenProcessPool` while limited to 2 GiB, leaving `config-audit`
+unhealthy because `meta.log` stopped advancing. Extra memory is a mitigation,
+not proof of the original kill reason: Docker's post-restart OOM counters do
+not establish why that earlier child process died. Confirm a full run completes
+after deployment. If Portainer explicitly sets `KOMETA_MEMORY_LIMIT=2g`, update
+that override to `4g` too. The audit continues to fail for stalled runs.
 Increment `CONFIG_OPS_VERSION` whenever the audit script changes so Compose
 recreates both the one-shot sync and the long-running auditor. The equivalent
 `RECYCLARR_CONFIG_VERSION` and `KOMETA_CONFIG_VERSION` values force their
