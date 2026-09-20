@@ -38,7 +38,7 @@ class API:
 
 def desired_preferences(env):
     ratio = float(env.get("SEED_RATIO", "2.0"))
-    minutes = int(env.get("SEED_TIME_MINUTES", "10080"))
+    minutes = int(env.get("SEED_TIME_MINUTES", "2880"))
     if not math.isfinite(ratio) or ratio <= 0 or minutes <= 0:
         raise ValueError("Seed ratio and time must be finite and positive")
     return {

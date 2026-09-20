@@ -6,7 +6,7 @@ and hourly. Failures retry after one minute and make its health check fail.
 | Setting | Default |
 | --- | --- |
 | Upload amount | Ratio 2.0 (upload twice the downloaded amount) |
-| Total seeding time | 10080 minutes (7 days) |
+| Total seeding time | 2880 minutes (2 days) |
 | Stop condition | Either limit reached |
 | qBittorrent action | Stop, retaining the torrent and its files |
 | Completed handling | Enabled in Sonarr, Radarr and Lidarr |

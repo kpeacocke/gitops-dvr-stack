@@ -700,7 +700,7 @@ services:
       - RADARR_API_KEY=${RADARR_API_KEY}
       - LIDARR_API_KEY=${LIDARR_API_KEY}
       - SEED_RATIO=${SEED_RATIO:-2.0}
-      - SEED_TIME_MINUTES=${SEED_TIME_MINUTES:-10080}
+      - SEED_TIME_MINUTES=${SEED_TIME_MINUTES:-2880}
     command: ["python", "/config/seeding.py", "--apply", "--loop"]
     volumes:
       - config-ops:/config:ro
