@@ -19,6 +19,9 @@ jobs:
       - name: Install yamllint
         run: pip install yamllint
 
+      - name: Test seeding policy safety
+        run: python -m unittest discover -s stack/config/config-ops -p 'test_*.py'
+
       - name: Lint YAML files
         run: yamllint -c .yamllint.yml stack/
 

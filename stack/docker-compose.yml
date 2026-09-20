@@ -643,7 +643,7 @@ services:
     container_name: config-ops-sync
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-08.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -655,8 +655,13 @@ services:
       - -ec
       - |
         mkdir -p /config
-        wget -q -O /config/audit.sh \
-          "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${CONFIG_OPS_REF}/stack/config/config-ops/audit.sh"
+        for file in audit.sh seeding.py; do
+          wget -q -O "/config/$${file}.pending" \
+            "https://raw.githubusercontent.com/kpeacocke/gitops-dvr-stack/$${CONFIG_OPS_REF}/stack/config/config-ops/$${file}"
+        done
+        for file in audit.sh seeding.py; do
+          mv "/config/$${file}.pending" "/config/$${file}"
+        done
         chmod 0755 /config/audit.sh
         touch /tmp/config-ready
         exec tail -f /dev/null
@@ -672,12 +677,50 @@ services:
     logging: *default-logging
     security_opt:
       - no-new-privileges:true
+  seeding-policy:
+    image: 'python:3.13-alpine'
+    container_name: seeding-policy
+    labels:
+      <<: *service-labels
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
+    depends_on:
+      config-ops-sync:
+        condition: service_healthy
+      qbittorrent:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+      lidarr:
+        condition: service_healthy
+    network_mode: "service:gluetun"
+    environment:
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - LIDARR_API_KEY=${LIDARR_API_KEY}
+      - SEED_RATIO=${SEED_RATIO:-2.0}
+      - SEED_TIME_MINUTES=${SEED_TIME_MINUTES:-10080}
+    command: ["python", "/config/seeding.py", "--apply", "--loop"]
+    volumes:
+      - config-ops:/config:ro
+      - seeding-state:/state
+    restart: unless-stopped
+    logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,time; assert time.time()-os.stat('/tmp/seeding-ok').st_mtime < 4200"]
+      interval: 60s
+      timeout: 5s
+      retries: 2
+      start_period: 120s
   config-audit:
     image: 'alpine:3.22'
     container_name: config-audit
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-08.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -805,3 +848,4 @@ networks:
   gluetun: null
 volumes:
   config-ops: null
+  seeding-state: null
