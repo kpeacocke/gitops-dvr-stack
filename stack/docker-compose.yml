@@ -583,7 +583,9 @@ services:
     image: 'kometateam/kometa:latest'
     container_name: kometa
     labels: *service-labels
-    mem_limit: "${KOMETA_MEMORY_LIMIT:-2g}"
+    # TV audio-overlay scans retain episode metadata across the library.
+    # The former 2 GiB ceiling coincided with repeated worker termination.
+    mem_limit: "${KOMETA_MEMORY_LIMIT:-4g}"
     pids_limit: 256
     depends_on:
       kometa-config:
@@ -765,10 +767,13 @@ services:
         while true; do
           if /config/audit.sh; then
             touch /tmp/audit-ok
+            sleep 21600
           else
             rm -f /tmp/audit-ok
+            # Recheck recovery promptly instead of retaining a failed state
+            # for six hours after the underlying problem has cleared.
+            sleep 300
           fi
-          sleep 21600
         done
     volumes:
       - config-ops:/config:ro

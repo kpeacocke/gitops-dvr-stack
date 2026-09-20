@@ -46,6 +46,7 @@ class SeedingTests(unittest.TestCase):
             "fields": [{"name": k, "value": v} for k, v in {
                 "host": "localhost", "port": 8081, "tvCategory": "tv",
                 "password": "not-a-real-password", "postImportCategory": "",
+                "tvImportedCategory": None, "movieImportedCategory": None, "musicImportedCategory": None,
             }.items()],
         }
         self.app = FakeAPI({
@@ -89,7 +90,9 @@ class SeedingTests(unittest.TestCase):
 
     def test_unsafe_client_fails_before_any_write(self):
         for field, value in (("host", "other-host"), ("port", 9999),
-                             ("tvCategory", ""), ("postImportCategory", "imported")):
+                             ("tvCategory", ""), ("postImportCategory", "imported"),
+                             ("tvImportedCategory", "imported"), ("movieImportedCategory", "imported"),
+                             ("musicImportedCategory", "imported")):
             with self.subTest(field=field):
                 fields = self.app.resources["/downloadclient"][0]["fields"]
                 target = next(f for f in fields if f["name"] == field)

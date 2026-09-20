@@ -86,7 +86,9 @@ def reconcile(qbit, apps, desired, state_dir, apply=False):
             fields = {f["name"]: f.get("value") for f in client["fields"]}
             if fields.get("host") not in ("localhost", "127.0.0.1") or int(fields.get("port", 0)) != 8081:
                 raise ValueError(f"{name}: qBittorrent client does not target local port 8081")
-            if fields.get("postImportCategory"):
+            if any(fields.get(k) for k in (
+                "postImportCategory", "tvImportedCategory", "movieImportedCategory", "musicImportedCategory"
+            )):
                 raise ValueError(f"{name}: post-import category prevents safe completed removal")
             if not any(fields.get(k) for k in ("tvCategory", "movieCategory", "musicCategory")):
                 raise ValueError(f"{name}: empty torrent category")
