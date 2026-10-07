@@ -39,6 +39,12 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stderr)
         self.assertIn('TLS/request validation failed', result.stderr)
 
+    def test_private_plex_rejects_public_fallback_and_tls_failure(self):
+        for remote, curl_status, expected in [('172.26.0.1', 0, 0), ('203.0.113.1', 0, 1), ('172.26.0.1', 60, 1)]:
+            setup = 'curl() { printf %s ' + remote + '; return ' + str(curl_status) + '; }'
+            result = self.check(setup, 'check_private_plex')
+            self.assertEqual(result.returncode, expected, result.stderr)
+
     def test_kometa_completion_is_not_enough(self):
         cases = [('[ERROR] Plex failed\nFinished Daily Run\n', 1010, 1), ('Finished Daily Run\n', 200000, 1), ('Finished Daily Run\n', 1010, 0), ('Starting run\n', 1010, 0), ('Starting run\n', 6000, 1)]
         with tempfile.TemporaryDirectory() as directory:

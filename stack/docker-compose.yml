@@ -22,6 +22,10 @@ services:
       - gluetun
     cap_add:
       - NET_ADMIN
+    # Shared network consumers inherit this hosts file from Gluetun.
+    # Keep TLS hostname verification while reaching DSM over the local bridge.
+    extra_hosts:
+      - "plex.${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}:${PLEX_PRIVATE_IP:-172.26.0.1}"
     ports:
       - 127.0.0.1:7878:7878/tcp
       - 127.0.0.1:8080:8080/tcp
@@ -645,7 +649,7 @@ services:
     container_name: config-ops-sync
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.2}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -684,7 +688,7 @@ services:
     container_name: seeding-policy
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.2}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -722,7 +726,7 @@ services:
     container_name: config-audit
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.2}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -756,6 +760,7 @@ services:
       - BACKUP_MAX_AGE_DAYS=${BACKUP_MAX_AGE_DAYS:-8}
       - MIN_FREE_SPACE_GIB=${MIN_FREE_SPACE_GIB:-500}
       - MIN_FREE_SPACE_PERCENT=${MIN_FREE_SPACE_PERCENT:-10}
+      - PLEX_PRIVATE_IP=${PLEX_PRIVATE_IP:-172.26.0.1}
       - MIN_ENABLED_INDEXERS=${MIN_ENABLED_INDEXERS:-1}
       - KOMETA_STALE_MINUTES=${KOMETA_STALE_MINUTES:-45}
       - PUBLIC_BASE_DOMAIN=${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}

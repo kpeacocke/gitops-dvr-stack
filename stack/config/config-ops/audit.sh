@@ -33,6 +33,20 @@ check_public_http() {
   esac
 }
 
+check_private_plex() {
+  expected=${PLEX_PRIVATE_IP:-172.26.0.1}
+  url="https://plex.${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}/identity"
+  if ! remote=$(curl -fsS --max-time 20 -o /dev/null -w '%{remote_ip}' "$url"); then
+    fail "Plex private HTTPS/TLS identity check failed"
+    return
+  fi
+  if [ "$remote" = "$expected" ]; then
+    ok "Plex verified HTTPS reaches private host $remote (identity only; playback not tested)"
+  else
+    fail "Plex resolved to $remote instead of private host $expected"
+  fi
+}
+
 check_recent_backup() {
   name=$1
   directory=$2
@@ -319,7 +333,11 @@ check_recent_backup Prowlarr /prowlarr-config/Backups
 public_domain=${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}
 public_services=${PUBLIC_SERVICE_NAMES:-"prowlarr sabnzbd qbittorrent sonarr radarr bazarr lidarr mylar lazylibrarian cleanuparr tautulli seerr notifiarr uptime plex"}
 for service in $public_services; do
-  check_public_http "$service" "https://$service.$public_domain"
+  if [ "$service" = plex ]; then
+    check_private_plex
+  else
+    check_public_http "$service" "https://$service.$public_domain"
+  fi
 done
 
 if [ "$failures" -gt 0 ]; then

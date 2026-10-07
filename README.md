@@ -193,8 +193,19 @@ network interface in this topology. Examples:
 - Seerr/Notifiarr to the Arr applications: `http://localhost:<app-port>`
 
 Tautulli, Seerr, Kometa, and Notifiarr share Gluetun as requested. Their Plex
-connection must use `https://plex.ambitiouscake.com`, because Plex is in its
-own host-networked stack rather than this shared namespace.
+connection uses `https://plex.ambitiouscake.com`. Gluetun maps this hostname to
+`PLEX_PRIVATE_IP` in the shared hosts file so requests reach DSM locally with
+normal TLS certificate and hostname validation. Plex remains in its own
+host-networked stack. Download traffic keeps the existing VPN and firewall.
+
+On Alexandria, the verified DVR bridge gateway is `172.26.0.1`. The advertised
+LAN address and Docker default host gateway did not respond from this namespace.
+If recreating the Docker network or restoring on another host, set
+`PLEX_PRIVATE_IP` to the new reachable host bridge gateway before deploying.
+The audit rejects a public-address fallback or TLS failure. This identity check
+does not prove playback or a completed Kometa run. After changing Gluetun,
+verify all shared-network services were recreated against its current container
+and confirm authenticated library access from Kometa, Tautulli and Seerr.
 
 Only browser and reverse-proxy traffic should use the published host ports and
 `*.ambitiouscake.com` names. Plex intentionally remains in its separate stack
