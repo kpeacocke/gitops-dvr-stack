@@ -6,17 +6,18 @@ and hourly. Failures retry after one minute and make its health check fail.
 | Setting | Default |
 | --- | --- |
 | Upload amount | Ratio 2.0 (upload twice the downloaded amount) |
-| Total seeding time | 2880 minutes (2 days) |
-| Stop condition | Either limit reached |
+| Wall-clock retention | 48 hours after download completion |
+| Stop condition | Ratio 2.0 or 48 wall-clock hours after completion |
 | qBittorrent action | Stop, retaining the torrent and its files |
 | Completed handling | Enabled in Sonarr, Radarr and Lidarr |
 | Removal | Enabled for their active local qBittorrent clients |
 
-Override `SEED_RATIO` and `SEED_TIME_MINUTES` in Portainer. Both must be
-positive. Time is qBittorrent's **seeding time**, not wall-clock time since
-download. The inactive-seeding limit is disabled so it cannot stop torrents
-earlier than this policy. New qBittorrent versions exposing a combination mode
-are explicitly configured to match either limit.
+Override `SEED_RATIO` and `SEED_MAX_AGE_HOURS` in Portainer. Both must be
+positive. `SEED_MAX_AGE_HOURS` is measured from qBittorrent's `completion_on`
+timestamp, so the default 48 hours is elapsed wall-clock time, not accumulated
+seeding time. qBittorrent's native seeding-time and inactive-seeding-time limits
+are disabled. The policy stops completed torrents once they reach the wall-clock
+cap; the native ratio limit can stop them earlier.
 
 The Arr application verifies import and seeding completion before asking
 qBittorrent to remove the downloaded copy. Library files remain in place.
@@ -39,7 +40,7 @@ Only changed fields are managed; the surrounding API resources are preserved.
 ## Deployment and verification
 
 Merge through a PR and deploy through Portainer GitOps. If Portainer explicitly
-sets `CONFIG_OPS_VERSION`, set it to `2026-09-20.1`; if `CONFIG_OPS_REF` is pinned,
+sets `CONFIG_OPS_VERSION`, set it to `2026-10-07.1`; if `CONFIG_OPS_REF` is pinned,
 advance it to a commit containing the policy. The config loader downloads both
 files before replacing them. The new service has no media filesystem mounts.
 
@@ -53,8 +54,9 @@ docker logs --tail 30 seeding-policy
 Verify the qBittorrent BitTorrent share limits, then check Completed Download
 Handling and Remove Completed in each Arr qBittorrent client. A successful
 reconciliation logs `Seeding policy verified.` and updates its health marker.
-Inspect a completed torrent through its import and limit transition; manually
-stopping a torrent alone does not prove it reached its seeding goal.
+Inspect a completed torrent through import and expiry. The policy uses
+`completion_on`, so a torrent completed 48 hours ago is eligible even if it has
+only seeded for a fraction of that time.
 
 The first changed values are retained without credentials in the persistent
 `seeding-state` volume. To roll back, stop `seeding-policy`, inspect those JSON
