@@ -19,7 +19,10 @@ check_http() {
 check_public_http() {
   name=$1
   url=$2
-  code=$(curl -sS -L --max-time 20 -o /dev/null -w '%{http_code}' "$url" || true)
+  if ! code=$(curl -sS -L --max-time 20 -o /dev/null -w '%{http_code}' "$url"); then
+    fail "$name public TLS/request validation failed: $url"
+    return
+  fi
   case "$code" in
     200|204|301|302|303|307|308|401|403)
       ok "$name TLS/public route responds with HTTP $code (transport only; not application health)"

@@ -34,6 +34,11 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('transport only', result.stdout)
 
+    def test_redirect_with_tls_failure_is_not_healthy(self):
+        result = self.check('curl() { printf 302; return 60; }', 'check_public_http fixture https://fixture')
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertIn('TLS/request validation failed', result.stderr)
+
     def test_kometa_completion_is_not_enough(self):
         cases = [('[ERROR] Plex failed\nFinished Daily Run\n', 1010, 1), ('Finished Daily Run\n', 200000, 1), ('Finished Daily Run\n', 1010, 0), ('Starting run\n', 1010, 0), ('Starting run\n', 6000, 1)]
         with tempfile.TemporaryDirectory() as directory:
