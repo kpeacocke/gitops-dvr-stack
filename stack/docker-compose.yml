@@ -645,7 +645,7 @@ services:
     container_name: config-ops-sync
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.3}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.1}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -684,7 +684,7 @@ services:
     container_name: seeding-policy
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.3}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.1}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -722,7 +722,7 @@ services:
     container_name: config-audit
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.3}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-08.1}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -755,6 +755,7 @@ services:
       - VPN_EXPECTED_COUNTRY=${VPN_EXPECTED_COUNTRY:-CH}
       - BACKUP_MAX_AGE_DAYS=${BACKUP_MAX_AGE_DAYS:-8}
       - MIN_FREE_SPACE_GIB=${MIN_FREE_SPACE_GIB:-500}
+      - MIN_FREE_SPACE_PERCENT=${MIN_FREE_SPACE_PERCENT:-10}
       - MIN_ENABLED_INDEXERS=${MIN_ENABLED_INDEXERS:-1}
       - KOMETA_STALE_MINUTES=${KOMETA_STALE_MINUTES:-45}
       - PUBLIC_BASE_DOMAIN=${PUBLIC_BASE_DOMAIN:-ambitiouscake.com}
@@ -790,7 +791,9 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "test", "-f", "/tmp/audit-ok"]
+      test:
+        - CMD-SHELL
+        - 'test -f /tmp/audit-ok && test "$$(($$(date +%s) - $$(stat -c %Y /tmp/audit-ok)))" -lt 25200'
       interval: 60s
       timeout: 5s
       retries: 1

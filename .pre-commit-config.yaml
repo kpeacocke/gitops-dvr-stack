@@ -30,7 +30,7 @@ repos:
       - id: docker-compose-validate
         name: docker-compose-validate
         description: Validate docker-compose file for syntax errors
-        entry: docker compose -f stack/docker-compose.yml config
+        entry: docker compose --env-file stack/.env.sample -f stack/docker-compose.yml config --quiet
         pass_filenames: false
         language: system
         types: [yaml]

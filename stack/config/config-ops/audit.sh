@@ -19,10 +19,13 @@ check_http() {
 check_public_http() {
   name=$1
   url=$2
-  code=$(curl -ksS -L --max-time 20 -o /dev/null -w '%{http_code}' "$url" || true)
+  if ! code=$(curl -sS -L --max-time 20 -o /dev/null -w '%{http_code}' "$url"); then
+    fail "$name public TLS/request validation failed: $url"
+    return
+  fi
   case "$code" in
     200|204|301|302|303|307|308|401|403)
-      ok "$name public route responded with HTTP $code"
+      ok "$name TLS/public route responds with HTTP $code (transport only; not application health)"
       ;;
     *)
       fail "$name public route returned HTTP ${code:-unavailable}: $url"
@@ -50,6 +53,10 @@ check_free_space() {
   minimum_gib=${MIN_FREE_SPACE_GIB:-500}
   available_kib=$(df -Pk "$directory" | awk 'NR == 2 { print $4 }')
   minimum_kib=$((minimum_gib * 1024 * 1024))
+  total_kib=$(df -Pk "$directory" | awk 'NR == 2 { print $2 }')
+  minimum_percent=${MIN_FREE_SPACE_PERCENT:-10}
+  free_percent=$((100 * ${available_kib:-0} / ${total_kib:-1}))
+  [ "$free_percent" -ge "$minimum_percent" ] || fail "$directory has only ${free_percent}% free (minimum ${minimum_percent}%)"
   if [ "${available_kib:-0}" -ge "$minimum_kib" ]; then
     available_gib=$((available_kib / 1024 / 1024))
     ok "$directory has ${available_gib} GiB free (minimum ${minimum_gib} GiB)"
@@ -132,8 +139,23 @@ check_arr_health() {
     fail "$app health API failed"
     return
   }
-  errors=$(printf '%s' "$health" | jq '[.[] | select((.type // "") | ascii_downcase == "error")] | length')
-  [ "$errors" -eq 0 ] && ok "$app reports no health errors" || fail "$app reports $errors health error(s)"
+  errors=$(printf '%s' "$health" | jq '[.[] | select((.type // "") | ascii_downcase | . == "error" or . == "warning")] | length')
+  [ "$errors" -eq 0 ] && ok "$app reports no health warnings or errors" || fail "$app reports $errors health warning(s)/error(s)"
+}
+
+check_arr_roots() {
+  app=$1 base=$2 key=$3 api_version=${4:-v3}
+  roots=$(api_json "$base/api/$api_version/rootfolder" "$key") || {
+    fail "$app root-folder API failed"
+    return
+  }
+  count=$(printf '%s' "$roots" | jq 'length')
+  unavailable=$(printf '%s' "$roots" | jq '[.[] | select(.accessible != true)] | length')
+  if [ "$count" -gt 0 ] && [ "$unavailable" -eq 0 ]; then
+    ok "$app has $count accessible root folder(s)"
+  else
+    fail "$app root folders are missing or inaccessible ($count configured, $unavailable inaccessible)"
+  fi
 }
 
 check_prowlarr_indexers() {
@@ -211,20 +233,20 @@ check_kometa_last_run() {
     return
   fi
   recent=$(tail -n 1500 "$log")
-  if printf '%s' "$recent" | grep -q 'Config Error:'; then
-    fail "Kometa's recent log contains a configuration error"
+  modified=$(stat -c '%Y' "$log" 2>/dev/null || printf '0')
+  now=$(date +%s)
+  age_minutes=$(((now - modified) / 60))
+  maximum_age=${KOMETA_MAX_RUN_AGE_MINUTES:-2160}
+  if [ "$modified" -eq 0 ] || [ "$age_minutes" -gt "$maximum_age" ]; then
+    fail "Kometa log is older than ${maximum_age} minutes; recent success is unproven"
+  elif printf '%s' "$recent" | grep -Eiq '\[ERROR\]|Config Error:|Plex Error:|Traceback \(most recent call'; then
+    fail "Kometa recent log contains execution errors"
   elif printf '%s' "$recent" | grep -q 'Finished .* Run'; then
-    ok "Kometa has a recent completed run without configuration errors"
+    ok "Kometa has a recent completed run without detected execution errors"
+  elif [ "$age_minutes" -ge "${KOMETA_STALE_MINUTES:-45}" ]; then
+    fail "Kometa has no completed run and its log is stale (${age_minutes} minutes)"
   else
-    stale_minutes=${KOMETA_STALE_MINUTES:-45}
-    modified=$(stat -c '%Y' "$log" 2>/dev/null || printf '0')
-    now=$(date +%s)
-    age_minutes=$(((now - modified) / 60))
-    if [ "$modified" -gt 0 ] && [ "$age_minutes" -ge "$stale_minutes" ]; then
-      fail "Kometa has no completed run and its log is stale (${age_minutes} minutes; limit ${stale_minutes})"
-    else
-      ok "Kometa is active; its log is fresh and the current run has not completed yet (${age_minutes} minutes)"
-    fi
+    ok "Kometa is active (${age_minutes} minutes); completion is not yet proven"
   fi
 }
 
@@ -277,6 +299,9 @@ check_arr_health Sonarr http://localhost:8989 "$SONARR_API_KEY"
 check_arr_health Radarr http://localhost:7878 "$RADARR_API_KEY"
 check_arr_health Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
 check_arr_health Prowlarr http://localhost:9696 "$PROWLARR_API_KEY" v1
+check_arr_roots Sonarr http://localhost:8989 "$SONARR_API_KEY"
+check_arr_roots Radarr http://localhost:7878 "$RADARR_API_KEY"
+check_arr_roots Lidarr http://localhost:8686 "$LIDARR_API_KEY" v1
 check_prowlarr_apps
 check_prowlarr_indexers
 check_qbittorrent_vpn_port
