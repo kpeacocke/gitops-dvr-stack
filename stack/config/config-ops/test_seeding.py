@@ -15,11 +15,25 @@ class FakeAPI:
 
     def request(self, path, method="GET", body=None, form=False):
         if method == "GET":
+            if path.startswith("/api/v2/torrents/info?"):
+                from urllib.parse import parse_qs
+                h = parse_qs(path.split("?", 1)[1])["hashes"][0]
+                return copy.deepcopy([t for t in self.resources["/api/v2/torrents/info"] if t["hash"] == h])
             return copy.deepcopy(self.resources[path])
         self.writes.append((method, path, copy.deepcopy(body)))
         if path == "/api/v2/app/setPreferences":
             if not self.ignore_preferences:
                 self.resources["/api/v2/app/preferences"].update(json.loads(body["json"]))
+        elif path == "/api/v2/torrents/setShareLimits":
+            for torrent in self.resources["/api/v2/torrents/info"]:
+                if torrent["hash"] == body["hashes"] and not self.ignore_preferences:
+                    torrent["ratio_limit"] = body["ratioLimit"]
+        elif path == "/api/v2/torrents/stop":
+            for torrent in self.resources["/api/v2/torrents/info"]:
+                if torrent["hash"] == body["hashes"]:
+                    torrent["state"] = "stoppedUP"
+        elif path == "/config/downloadclient":
+            self.resources[path] = copy.deepcopy(body)
         elif path.startswith("/downloadclient/"):
             clients = self.resources["/downloadclient"]
             self.resources["/downloadclient"] = [
@@ -102,7 +116,8 @@ class SeedingTests(unittest.TestCase):
     def test_completed_torrent_stops_after_48_wall_clock_hours(self):
         now = 2_000_000_000
         self.qbit.resources["/api/v2/torrents/info"] = [{
-            "hash": "abc123",
+            "hash": "a" * 40, "category": "tv", "ratio_limit": -2,
+            "seeding_time_limit": -2, "inactive_seeding_time_limit": -2,
             "name": "old-complete",
             "completion_on": now - (48 * 3600),
             "progress": 1.0,
@@ -111,14 +126,15 @@ class SeedingTests(unittest.TestCase):
         }]
         self.run_policy(now=now)
         self.assertIn(
-            ("POST", "/api/v2/torrents/stop", {"hashes": "abc123"}),
+            ("POST", "/api/v2/torrents/stop", {"hashes": "a" * 40}),
             self.qbit.writes,
         )
 
     def test_completed_torrent_does_not_stop_before_48_hours(self):
         now = 2_000_000_000
         self.qbit.resources["/api/v2/torrents/info"] = [{
-            "hash": "abc123",
+            "hash": "a" * 40, "category": "tv", "ratio_limit": -2,
+            "seeding_time_limit": -2, "inactive_seeding_time_limit": -2,
             "name": "young-complete",
             "completion_on": now - (48 * 3600) + 1,
             "progress": 1.0,
@@ -131,7 +147,8 @@ class SeedingTests(unittest.TestCase):
     def test_force_started_torrent_is_operator_override(self):
         now = 2_000_000_000
         self.qbit.resources["/api/v2/torrents/info"] = [{
-            "hash": "abc123",
+            "hash": "a" * 40, "category": "tv", "ratio_limit": -2,
+            "seeding_time_limit": -2, "inactive_seeding_time_limit": -2,
             "name": "forced",
             "completion_on": now - (72 * 3600),
             "progress": 1.0,
@@ -185,6 +202,54 @@ class SeedingTests(unittest.TestCase):
         self.run_policy()
         sent = json.loads(self.qbit.writes[0][2]["json"])
         self.assertNotIn("share_limits_mode", sent)
+
+
+    def old_torrent(self, **overrides):
+        return {"hash": "a" * 40, "category": "tv", "ratio_limit": -2,
+                "seeding_time_limit": -2, "inactive_seeding_time_limit": -2,
+                "completion_on": 2_000_000_000 - 48 * 3600,
+                "progress": 1, "state": "stoppedUP", "force_start": False, **overrides}
+
+    def test_stopped_backlog_becomes_removable_without_direct_deletion(self):
+        self.qbit.resources["/api/v2/torrents/info"] = [self.old_torrent()]
+        self.run_policy()
+        self.assertEqual(self.qbit.resources["/api/v2/torrents/info"][0]["ratio_limit"], 0)
+        self.assertFalse(any(p.endswith(("/delete", "/stop")) for _, p, _ in self.qbit.writes))
+        count = len(self.qbit.writes)
+        self.run_policy()
+        self.assertEqual(len(self.qbit.writes), count)
+        self.assertEqual(json.loads((self.state / ("torrent-" + "a" * 40 + ".json")).read_text())["ratio_limit"], -2)
+
+    def test_preview_of_expired_backlog_never_writes(self):
+        self.qbit.resources["/api/v2/torrents/info"] = [self.old_torrent()]
+        self.run_policy(False)
+        self.assertEqual(self.qbit.writes + self.app.writes, [])
+        self.assertEqual(list(self.state.iterdir()), [])
+
+    def test_unowned_incomplete_forced_and_explicit_limits_are_preserved(self):
+        for override in ({"category": "manual"}, {"progress": 0.99},
+                         {"completion_on": 0}, {"state": "checkingUP"},
+                         {"state": "forcedUP"}, {"force_start": True},
+                         {"ratio_limit": -1}, {"ratio_limit": 5},
+                         {"seeding_time_limit": 500}, {"inactive_seeding_time_limit": 60}):
+            with self.subTest(override=override):
+                self.qbit.resources["/api/v2/torrents/info"] = [self.old_torrent(**override)]
+                self.qbit.writes.clear()
+                self.run_policy()
+                self.assertFalse(any('/torrents/' in p for _, p, _ in self.qbit.writes))
+
+    def test_failed_limit_verification_does_not_stop(self):
+        self.run_policy()
+        self.qbit.ignore_preferences = True
+        self.qbit.resources["/api/v2/torrents/info"] = [self.old_torrent(state="uploading")]
+        with self.assertRaises(RuntimeError):
+            self.run_policy()
+        self.assertFalse(any(p.endswith('/stop') for _, p, _ in self.qbit.writes))
+
+    def test_retry_after_limit_set_finishes_stop(self):
+        self.qbit.resources["/api/v2/torrents/info"] = [self.old_torrent(state="uploading", ratio_limit=0)]
+        self.run_policy()
+        self.assertIn(("POST", "/api/v2/torrents/stop", {"hashes": "a" * 40}), self.qbit.writes)
 
     def test_invalid_limits_fail_closed(self):
         for env in (
