@@ -645,7 +645,7 @@ services:
     container_name: config-ops-sync
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.1}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -684,7 +684,7 @@ services:
     container_name: seeding-policy
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.1}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -702,7 +702,7 @@ services:
       - RADARR_API_KEY=${RADARR_API_KEY}
       - LIDARR_API_KEY=${LIDARR_API_KEY}
       - SEED_RATIO=${SEED_RATIO:-2.0}
-      - SEED_TIME_MINUTES=${SEED_TIME_MINUTES:-2880}
+      - SEED_MAX_AGE_HOURS=${SEED_MAX_AGE_HOURS:-48}
     command: ["python", "/config/seeding.py", "--apply", "--loop"]
     volumes:
       - config-ops:/config:ro
@@ -722,7 +722,7 @@ services:
     container_name: config-audit
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-09-20.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.1}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
