@@ -17,7 +17,13 @@ positive. `SEED_MAX_AGE_HOURS` is measured from qBittorrent's `completion_on`
 timestamp, so the default 48 hours is elapsed wall-clock time, not accumulated
 seeding time. qBittorrent's native seeding-time and inactive-seeding-time limits
 are disabled. The policy stops completed torrents once they reach the wall-clock
-cap; the native ratio limit can stop them earlier.
+cap; the native ratio limit can stop them earlier. At wall-clock expiry the
+policy sets the individual ratio limit to zero and verifies it before stopping.
+This satisfies Arr's seed-limit check, which stopping alone does not satisfy.
+Already-stopped completed torrents are included to recover the existing backlog.
+Only categories belonging to validated Arr download clients are eligible.
+The policy never calls the torrent deletion API; Arr still verifies successful
+import before deleting downloaded data.
 
 The Arr application verifies import and seeding completion before asking
 qBittorrent to remove the downloaded copy. Library files remain in place.
@@ -34,13 +40,13 @@ There is no disk-pressure deletion of library files or unimported downloads.
 
 The reconciler refuses to enable removal if an Arr client uses another host,
 port, an empty category, or a post-import category. It changes no indexers,
-categories, client credentials, queue priorities or torrent-specific limits.
+categories, client credentials, queue priorities. Only eligible expired torrents receive a zero ratio limit.
 Only changed fields are managed; the surrounding API resources are preserved.
 
 ## Deployment and verification
 
 Merge through a PR and deploy through Portainer GitOps. If Portainer explicitly
-sets `CONFIG_OPS_VERSION`, set it to `2026-10-07.1`; if `CONFIG_OPS_REF` is pinned,
+sets `CONFIG_OPS_VERSION`, set it to `2026-10-07.2`; if `CONFIG_OPS_REF` is pinned,
 advance it to a commit containing the policy. The config loader downloads both
 files before replacing them. The new service has no media filesystem mounts.
 

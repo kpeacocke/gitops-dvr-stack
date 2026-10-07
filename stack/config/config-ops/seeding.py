@@ -3,7 +3,8 @@
 
 qBittorrent stops at the configured ratio. This policy additionally stops
 completed torrents after a wall-clock age measured from qBittorrent's
-completion_on timestamp. Arr then removes successfully imported downloads.
+completion_on timestamp. At expiry it sets an attained per-torrent ratio
+limit before stopping, so Arr can remove successfully imported downloads.
 The policy never deletes torrent data itself.
 """
 
@@ -72,39 +73,74 @@ def save_original(state_dir, name, value):
             json.dump(value, handle, indent=2)
 
 
-def expired_completed_torrents(qbit, age_seconds, now=None):
+def expired_completed_torrents(qbit, age_seconds, categories, now=None):
     """Return completed torrents older than the wall-clock retention period."""
     now = time.time() if now is None else now
     torrents = qbit.request("/api/v2/torrents/info")
     expired = []
     for torrent in torrents:
+        if torrent.get("category") not in categories:
+            continue
         completion_on = int(torrent.get("completion_on") or 0)
         if completion_on <= 0 or float(torrent.get("progress") or 0) < 1:
             continue
         # A forced torrent is an explicit operator override.
-        if torrent.get("force_start"):
+        if torrent.get("force_start") or torrent.get("state") == "forcedUP":
             continue
-        state = str(torrent.get("state") or "").lower()
-        if state.startswith("stopped") or state.startswith("paused"):
+        # Never alter explicit tracker/operator limits. Zero is our already
+        # expired marker, permitting a retry if stopping previously failed.
+        if torrent.get("ratio_limit") not in (-2, 0):
+            continue
+        if any(torrent.get(k) != -2 for k in (
+            "seeding_time_limit", "inactive_seeding_time_limit"
+        )):
+            continue
+        if torrent.get("state") not in ("uploading", "stalledUP", "queuedUP", "stoppedUP", "pausedUP"):
             continue
         if now - completion_on >= age_seconds:
             expired.append(torrent)
     return expired
 
 
-def stop_expired_torrents(qbit, age_seconds, apply=False, now=None):
-    expired = expired_completed_torrents(qbit, age_seconds, now)
+def stop_expired_torrents(qbit, age_seconds, categories, state_dir, apply=False, now=None):
+    expired = expired_completed_torrents(qbit, age_seconds, categories, now)
     if not expired:
         print("qBittorrent: no completed torrents exceed wall-clock retention", flush=True)
         return []
-    hashes = "|".join(t["hash"] for t in expired)
     print(
         f"qBittorrent: {len(expired)} completed torrent(s) exceed "
         f"{age_seconds // 3600}h wall-clock retention",
         flush=True,
     )
-    if apply:
-        qbit.request("/api/v2/torrents/stop", "POST", {"hashes": hashes}, form=True)
+    for torrent in expired:
+        torrent_hash = torrent["hash"]
+        if len(torrent_hash) != 40 or any(c not in "0123456789abcdef" for c in torrent_hash):
+            raise ValueError("Invalid torrent hash")
+        print(f"qBittorrent: expiry {torrent_hash} category={torrent['category']} "
+              f"ratio={torrent.get('ratio')} state={torrent['state']}; Arr owns import verification/removal",
+              flush=True)
+        if not apply:
+            continue
+        if torrent["ratio_limit"] != 0:
+            save_original(state_dir, "torrent-" + torrent_hash, {
+                k: torrent[k] for k in ("hash", "ratio_limit", "seeding_time_limit", "inactive_seeding_time_limit")
+            })
+            # Stopping alone leaves Sonarr's HasReachedSeedLimit false.
+            # Zero makes that gate true; Arr still checks successful import.
+            qbit.request("/api/v2/torrents/setShareLimits", "POST", {
+                "hashes": torrent_hash, "ratioLimit": 0,
+                "seedingTimeLimit": -2, "inactiveSeedingTimeLimit": -2,
+            }, form=True)
+        actual = qbit.request("/api/v2/torrents/info?" + urlencode({"hashes": torrent_hash}))
+        if not actual:  # Arr may already have removed a previously stopped item.
+            continue
+        if len(actual) != 1 or actual[0].get("hash") != torrent_hash or actual[0].get("ratio_limit") != 0:
+            raise RuntimeError("Torrent expiry limit verification failed")
+        current = actual[0]
+        if current.get("category") != torrent["category"] or current.get("force_start") or current.get("state") == "forcedUP":
+            raise RuntimeError("Torrent ownership or operator override changed during expiry")
+        if current.get("state") not in ("stoppedUP", "pausedUP"):
+            qbit.request("/api/v2/torrents/stop", "POST", {"hashes": torrent_hash}, form=True)
     return expired
 
 
@@ -174,9 +210,14 @@ def reconcile(qbit, apps, desired, state_dir, age_seconds, apply=False, now=None
             if any(not actual[c["id"]]["removeCompletedDownloads"] for c in clients):
                 raise RuntimeError(f"{name}: removal setting verification failed")
 
-    # Stop completed torrents at the wall-clock cap. This never deletes data;
-    # Arr's Completed Download Handling performs deletion after successful import.
-    stop_expired_torrents(qbit, age_seconds, apply, now)
+    categories = set()
+    for _, _, _, clients in plans:
+        for client in clients:
+            categories.update(f["value"] for f in client["fields"]
+                              if f["name"] in ("tvCategory", "movieCategory", "musicCategory") and f.get("value"))
+    # Attain the seed-limit gate, including for the already-stopped backlog.
+    # Arr retains responsibility for import checks and deletion.
+    stop_expired_torrents(qbit, age_seconds, categories, state_dir, apply, now)
     print("Seeding policy verified." if apply else "Seeding policy preview complete.", flush=True)
 
 

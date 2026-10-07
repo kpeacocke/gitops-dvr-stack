@@ -645,7 +645,7 @@ services:
     container_name: config-ops-sync
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.2}"
     depends_on:
       gluetun:
         condition: service_healthy
@@ -684,7 +684,7 @@ services:
     container_name: seeding-policy
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.2}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
@@ -722,7 +722,7 @@ services:
     container_name: config-audit
     labels:
       <<: *service-labels
-      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.1}"
+      config-version: "${CONFIG_OPS_VERSION:-2026-10-07.2}"
     depends_on:
       config-ops-sync:
         condition: service_healthy
