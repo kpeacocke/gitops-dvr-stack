@@ -1,0 +1,64 @@
+---
+name: Portainer Control
+
+"on":
+  workflow_dispatch:
+  issues:
+    types:
+      - opened
+
+concurrency:
+  group: portainer-dvr-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  deploy:
+    name: Deploy DVR stack
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.issue.user.login == github.repository_owner &&
+       github.event.issue.title == 'Portainer: deploy DVR')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Portainer webhook secret
+        env:
+          WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
+        run: |
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "::error::PORTAINER_WEBHOOK_URL is not configured"
+            exit 1
+          fi
+
+      - name: Trigger Portainer GitOps redeploy
+        env:
+          WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
+        run: |
+          curl             --fail             --silent             --show-error             --retry 3             --retry-all-errors             --connect-timeout 10             --max-time 60             -X POST             "$WEBHOOK_URL"
+
+      - name: Comment on control issue
+        if: ${{ success() && github.event_name == 'issues' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          gh issue comment "$ISSUE_URL"             --body "Portainer GitOps redeploy webhook accepted for the DVR stack."
+
+      - name: Close successful control issue
+        if: ${{ success() && github.event_name == 'issues' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          gh issue close "$ISSUE_URL"             --comment "Deployment trigger completed."
+
+      - name: Record failure on control issue
+        if: ${{ failure() && github.event_name == 'issues' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          gh issue comment "$ISSUE_URL"             --body "Portainer redeploy failed. Check the Portainer Control workflow run."
