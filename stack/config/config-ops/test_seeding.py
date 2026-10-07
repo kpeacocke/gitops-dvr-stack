@@ -25,6 +25,9 @@ class FakeAPI:
             if not self.ignore_preferences:
                 self.resources["/api/v2/app/preferences"].update(json.loads(body["json"]))
         elif path == "/api/v2/torrents/setShareLimits":
+            # qBittorrent 5.2 requires these fields and rejects missing ones.
+            if body.get("shareLimitAction") != "Stop" or body.get("shareLimitsMode") != "MatchAny":
+                raise ValueError("Missing safe share-limit action/mode")
             for torrent in self.resources["/api/v2/torrents/info"]:
                 if torrent["hash"] == body["hashes"] and not self.ignore_preferences:
                     torrent["ratio_limit"] = body["ratioLimit"]
