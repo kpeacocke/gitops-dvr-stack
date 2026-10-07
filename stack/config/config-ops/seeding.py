@@ -123,13 +123,16 @@ def stop_expired_torrents(qbit, age_seconds, categories, state_dir, apply=False,
             continue
         if torrent["ratio_limit"] != 0:
             save_original(state_dir, "torrent-" + torrent_hash, {
-                k: torrent[k] for k in ("hash", "ratio_limit", "seeding_time_limit", "inactive_seeding_time_limit")
+                k: torrent[k] for k in ("hash", "ratio_limit", "seeding_time_limit",
+                                       "inactive_seeding_time_limit", "share_limit_action", "share_limits_mode")
+                if k in torrent
             })
             # Stopping alone leaves Sonarr's HasReachedSeedLimit false.
             # Zero makes that gate true; Arr still checks successful import.
             qbit.request("/api/v2/torrents/setShareLimits", "POST", {
                 "hashes": torrent_hash, "ratioLimit": 0,
                 "seedingTimeLimit": -2, "inactiveSeedingTimeLimit": -2,
+                "shareLimitAction": "Stop", "shareLimitsMode": "MatchAny",
             }, form=True)
         actual = qbit.request("/api/v2/torrents/info?" + urlencode({"hashes": torrent_hash}))
         if not actual:  # Arr may already have removed a previously stopped item.

@@ -46,7 +46,7 @@ Only changed fields are managed; the surrounding API resources are preserved.
 ## Deployment and verification
 
 Merge through a PR and deploy through Portainer GitOps. If Portainer explicitly
-sets `CONFIG_OPS_VERSION`, set it to `2026-10-07.2`; if `CONFIG_OPS_REF` is pinned,
+sets `CONFIG_OPS_VERSION`, set it to `2026-10-07.3`; if `CONFIG_OPS_REF` is pinned,
 advance it to a commit containing the policy. The config loader downloads both
 files before replacing them. The new service has no media filesystem mounts.
 
