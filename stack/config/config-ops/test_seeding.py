@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from seeding import desired_preferences, reconcile
+from seeding import desired_preferences, max_age_seconds, reconcile
 
 
 class FakeAPI:
@@ -25,8 +25,7 @@ class FakeAPI:
             self.resources["/downloadclient"] = [
                 copy.deepcopy(body) if c["id"] == body["id"] else c for c in clients
             ]
-        else:
-            self.resources[path] = copy.deepcopy(body)
+        return None
 
 
 class SeedingTests(unittest.TestCase):
@@ -35,11 +34,18 @@ class SeedingTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.state = Path(self.temp.name)
         self.desired = desired_preferences({})
-        self.qbit = FakeAPI({"/api/v2/app/preferences": {
-            **self.desired, "max_ratio_enabled": False,
-            "max_seeding_time_enabled": False, "max_ratio_act": 3,
-            "listen_port": 54321, "share_limits_mode": "MatchAll",
-        }})
+        self.age_seconds = max_age_seconds({})
+        self.qbit = FakeAPI({
+            "/api/v2/app/preferences": {
+                **self.desired,
+                "max_ratio_enabled": False,
+                "max_seeding_time_enabled": True,
+                "max_ratio_act": 3,
+                "listen_port": 54321,
+                "share_limits_mode": "MatchAll",
+            },
+            "/api/v2/torrents/info": [],
+        })
         client = {
             "id": 1, "enable": True, "implementation": "QBittorrent",
             "removeCompletedDownloads": False, "priority": 10,
@@ -50,13 +56,24 @@ class SeedingTests(unittest.TestCase):
             }.items()],
         }
         self.app = FakeAPI({
-            "/config/downloadclient": {"id": 1, "enableCompletedDownloadHandling": False,
-                                       "autoRedownloadFailed": True},
+            "/config/downloadclient": {
+                "id": 1,
+                "enableCompletedDownloadHandling": False,
+                "autoRedownloadFailed": True,
+            },
             "/downloadclient": [client, {"id": 2, "enable": True, "implementation": "Sabnzbd"}],
         })
 
-    def run_policy(self, apply=True):
-        reconcile(self.qbit, [("sonarr", self.app)], self.desired, self.state, apply)
+    def run_policy(self, apply=True, now=2_000_000_000):
+        reconcile(
+            self.qbit,
+            [("sonarr", self.app)],
+            self.desired,
+            self.state,
+            self.age_seconds,
+            apply,
+            now,
+        )
 
     def test_preview_never_writes(self):
         self.run_policy(False)
@@ -68,6 +85,7 @@ class SeedingTests(unittest.TestCase):
         self.run_policy()
         prefs = self.qbit.resources["/api/v2/app/preferences"]
         self.assertEqual(prefs["max_ratio_act"], 0)
+        self.assertFalse(prefs["max_seeding_time_enabled"])
         self.assertEqual(prefs["share_limits_mode"], "MatchAny")
         self.assertEqual(prefs["listen_port"], 54321)
         after = self.app.resources["/downloadclient"]
@@ -80,7 +98,48 @@ class SeedingTests(unittest.TestCase):
         backups = "".join(p.read_text() for p in self.state.iterdir())
         self.assertNotIn("password", backups)
         self.assertEqual(json.loads((self.state / "qbittorrent.json").read_text())["max_ratio_act"], 3)
-        self.assertTrue(all("torrents/" not in path for _, path, _ in self.qbit.writes))
+
+    def test_completed_torrent_stops_after_48_wall_clock_hours(self):
+        now = 2_000_000_000
+        self.qbit.resources["/api/v2/torrents/info"] = [{
+            "hash": "abc123",
+            "name": "old-complete",
+            "completion_on": now - (48 * 3600),
+            "progress": 1.0,
+            "state": "uploading",
+            "force_start": False,
+        }]
+        self.run_policy(now=now)
+        self.assertIn(
+            ("POST", "/api/v2/torrents/stop", {"hashes": "abc123"}),
+            self.qbit.writes,
+        )
+
+    def test_completed_torrent_does_not_stop_before_48_hours(self):
+        now = 2_000_000_000
+        self.qbit.resources["/api/v2/torrents/info"] = [{
+            "hash": "abc123",
+            "name": "young-complete",
+            "completion_on": now - (48 * 3600) + 1,
+            "progress": 1.0,
+            "state": "uploading",
+            "force_start": False,
+        }]
+        self.run_policy(now=now)
+        self.assertFalse(any(path == "/api/v2/torrents/stop" for _, path, _ in self.qbit.writes))
+
+    def test_force_started_torrent_is_operator_override(self):
+        now = 2_000_000_000
+        self.qbit.resources["/api/v2/torrents/info"] = [{
+            "hash": "abc123",
+            "name": "forced",
+            "completion_on": now - (72 * 3600),
+            "progress": 1.0,
+            "state": "forcedUP",
+            "force_start": True,
+        }]
+        self.run_policy(now=now)
+        self.assertFalse(any(path == "/api/v2/torrents/stop" for _, path, _ in self.qbit.writes))
 
     def test_unverified_stop_settings_never_enable_removal(self):
         self.qbit.ignore_preferences = True
@@ -89,10 +148,15 @@ class SeedingTests(unittest.TestCase):
         self.assertEqual(self.app.writes, [])
 
     def test_unsafe_client_fails_before_any_write(self):
-        for field, value in (("host", "other-host"), ("port", 9999),
-                             ("tvCategory", ""), ("postImportCategory", "imported"),
-                             ("tvImportedCategory", "imported"), ("movieImportedCategory", "imported"),
-                             ("musicImportedCategory", "imported")):
+        for field, value in (
+            ("host", "other-host"),
+            ("port", 9999),
+            ("tvCategory", ""),
+            ("postImportCategory", "imported"),
+            ("tvImportedCategory", "imported"),
+            ("movieImportedCategory", "imported"),
+            ("musicImportedCategory", "imported"),
+        ):
             with self.subTest(field=field):
                 fields = self.app.resources["/downloadclient"][0]["fields"]
                 target = next(f for f in fields if f["name"] == field)
@@ -106,8 +170,14 @@ class SeedingTests(unittest.TestCase):
     def test_failure_reading_later_app_does_not_partially_enable_removal(self):
         broken = FakeAPI({})
         with self.assertRaises(KeyError):
-            reconcile(self.qbit, [("sonarr", self.app), ("radarr", broken)],
-                      self.desired, self.state, True)
+            reconcile(
+                self.qbit,
+                [("sonarr", self.app), ("radarr", broken)],
+                self.desired,
+                self.state,
+                self.age_seconds,
+                True,
+            )
         self.assertEqual(self.qbit.writes + self.app.writes, [])
 
     def test_older_qbittorrent_without_mode(self):
@@ -117,10 +187,21 @@ class SeedingTests(unittest.TestCase):
         self.assertNotIn("share_limits_mode", sent)
 
     def test_invalid_limits_fail_closed(self):
-        for env in ({"SEED_RATIO": "nan"}, {"SEED_RATIO": "inf"}, {"SEED_RATIO": "0"},
-                    {"SEED_TIME_MINUTES": "-1"}, {"SEED_TIME_MINUTES": "1.5"}):
+        for env in (
+            {"SEED_RATIO": "nan"},
+            {"SEED_RATIO": "inf"},
+            {"SEED_RATIO": "0"},
+        ):
             with self.subTest(env=env), self.assertRaises(ValueError):
                 desired_preferences(env)
+
+        for env in (
+            {"SEED_MAX_AGE_HOURS": "nan"},
+            {"SEED_MAX_AGE_HOURS": "0"},
+            {"SEED_MAX_AGE_HOURS": "-1"},
+        ):
+            with self.subTest(env=env), self.assertRaises(ValueError):
+                max_age_seconds(env)
 
 
 if __name__ == "__main__":
