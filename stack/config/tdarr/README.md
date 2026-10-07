@@ -59,3 +59,14 @@ The three regression source paths are specific to this deployment. Adjust them
 in `backlog-audit.js` for another installation. Rerun discovery scans before an
 audit if indexed codec/HDR metadata may be stale. Eligibility and free space are
 checked again by the normal flow at processing time; savings are not guaranteed.
+
+## Synology metadata exclusions
+
+The scanner must ignore `/@eaDir` paths. These are NAS metadata, not media.
+For existing libraries, run `exclude-synology-metadata.cjs` inside Tdarr rather
+than reapplying `configure.cjs`: it backs up both current library records under
+`/app/configs/metadata-exclusions-*`, adds the path filter, and verifies that
+flow, schedule, processing flags and library roots remain unchanged. The files
+are private to the service. This does not clear historical scanner errors or
+prove a later scan completed successfully. New managed libraries receive the
+same exclusion from `configure.cjs`.

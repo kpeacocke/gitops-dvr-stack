@@ -35,6 +35,7 @@ async function main() {
     const library = structuredClone(defaults);
     Object.assign(library, { name, folder, cache: '/temp', flowId,
       containerFilter: 'mkv', pluginIDs: [], scannerThreadCount: 1,
+      foldersToIgnore: '/@eaDir',
       processLibrary: enabled, processTranscodes: true, processHealthChecks: false,
       folderWatching: enabled, folderWatchScanInterval: 3600, useFsEvents: false,
       scheduledScanFindNew: false, scanOnStart: enabled,
