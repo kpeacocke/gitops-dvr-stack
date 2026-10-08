@@ -33,6 +33,22 @@ with `configure.cjs --enable-libraries` (omit `--backlog`). Library names retain
 their existing identity. The schedule does not automatically revert when the
 queue empties. Observe Plex playback before leaving continuous processing enabled.
 
+Background encoding and strict full-file validation use FFmpeg `-readrate 0.25`
+to leave headroom for Plex on the shared NAS. This paces processing to at most a
+quarter of media real time; it does not lower output quality or change stream
+preservation and replacement checks. A two-hour film therefore needs at least
+eight hours for each paced full-file pass. Reassess this cap on different hardware
+using concurrent Plex playback, not just an isolated encoding benchmark.
+
+For an existing customised deployment, copy `pace-production.cjs`, `encode.js`
+and `health.js` together into `/app/configs` and run
+`node /app/configs/pace-production.cjs` to preview. Add `--apply` to back up and
+update only the recognised encoding and health functions in the flows actually
+assigned to `/tv` and `/movies`. It preserves the flow graph, remote-node
+branches, library settings and schedules. Unknown code fails closed. Do not
+reapply `configure.cjs` over customised production libraries. Existing workers
+retain their original command; inspect the next worker before claiming rollout.
+
 The Home queue excludes libraries outside their schedules. Use **Stats → All
 Libraries → Transcode → Queued** for the full pending inventory; queued does not
 mean eligible for conversion.
