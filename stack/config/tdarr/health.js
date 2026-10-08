@@ -3,7 +3,7 @@ module.exports = async (args) => {
   // Decode every video/audio track and make even recoverable decode errors fatal.
   await new Promise((resolve, reject) => {
     const child = spawn(args.ffmpegPath, ['-nostdin', '-v', 'error', '-xerror',
-      '-err_detect', 'explode', '-i', args.inputFileObj._id,
+      '-err_detect', 'explode', '-readrate', '0.25', '-i', args.inputFileObj._id,
       '-map', '0:v', '-map', '0:a?', '-f', 'null', '-'], { shell: false });
     let errors = '';
     child.stdout.resume();
