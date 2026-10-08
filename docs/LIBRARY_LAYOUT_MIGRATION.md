@@ -1,8 +1,8 @@
 # Same-share download and library layout
 
-This migration is opt-in. Do not set `MEDIA_LIBRARY_SUBDIR=library` until
-the filesystem and application steps below have completed. A Git deployment
-alone does not migrate data or change download categories.
+Deploy these mounts only during the coordinated migration below, after the
+filesystem switch. A Git deployment alone does not migrate data or change
+download categories. Keep the migration PR unmerged until the cutover is ready.
 
 The target is two separate directory trees inside each existing Btrfs share:
 
@@ -13,8 +13,8 @@ The target is two separate directory trees inside each existing Btrfs share:
 
 Sonarr, Radarr and Bazarr retain their parent-share mounts. Download clients
 receive only the download subdirectories, plus the existing `/downloads` mount
-for queued jobs and other applications. Tdarr's `/tv` and `/movies` mounts switch
-to the library subdirectories when the opt-in variable is set. Plex must be
+for queued jobs and other applications. Tdarr's `/tv` and `/movies` mounts use
+the library subdirectories. Plex must be
 updated separately to bind those same library subdirectories at its existing
 container paths. Music, books, comics and manually added downloads retain their
 existing paths.

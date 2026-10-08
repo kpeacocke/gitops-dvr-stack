@@ -848,8 +848,8 @@ services:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/logs:/app/logs'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/pilot:/pilot'
       - '${TDARR_CACHE_PATH:-/volume1/tdarr-cache}:/temp'
-      - '${TV_PATH:?Set TV_PATH in .env}/${MEDIA_LIBRARY_SUBDIR:-}:/tv'
-      - '${MOVIES_PATH:?Set MOVIES_PATH in .env}/${MEDIA_LIBRARY_SUBDIR:-}:/movies'
+      - '${TV_PATH:?Set TV_PATH in .env}/library:/tv'
+      - '${MOVIES_PATH:?Set MOVIES_PATH in .env}/library:/movies'
     mem_limit: "${TDARR_MEMORY_LIMIT:-4g}"
     cpuset: "${TDARR_CPUSET:-2,3}"
     restart: unless-stopped
