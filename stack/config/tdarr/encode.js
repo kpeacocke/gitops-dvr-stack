@@ -4,7 +4,8 @@ module.exports = async (args) => {
   command.shouldProcess = true;
   command.container = 'mkv';
   command.hardwareDecoding = false;
-  command.overallInputArguments.push('-init_hw_device', 'qsv=hw:/dev/dri/renderD128');
+  // Pace background work so the shared NAS GPU retains playback headroom.
+  command.overallInputArguments.push('-readrate', '0.25', '-init_hw_device', 'qsv=hw:/dev/dri/renderD128');
   command.overallOuputArguments.push('-map_metadata', '0', '-map_chapters', '0');
   for (const stream of command.streams) {
     stream.outputArgs = stream.codec_type === 'video'
