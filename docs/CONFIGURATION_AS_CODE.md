@@ -92,9 +92,13 @@ bind mounts. The enforceable backup and restore contract is in
 ## Required Secrets
 
 Portainer must supply `SONARR_API_KEY`, `RADARR_API_KEY`, `LIDARR_API_KEY`,
-`PROWLARR_API_KEY`, `NOTIFIARR_API_KEY`, `KOMETA_PLEX_TOKEN`,
+`PROWLARR_API_KEY`, `KOMETA_PLEX_TOKEN`,
 `KOMETA_TMDB_APIKEY`, and the existing VPN credentials. `VPN_EXPECTED_COUNTRY`
 defaults to `CH` because Gluetun is pinned to Switzerland.
+
+Set Notifiarr's API key in its Web UI. The client stores it in the existing
+`/config/notifiarr.conf` bind mount. Do not add a `DN_API_KEY` environment
+override: an empty override can replace the saved key when the client reloads.
 
 ## Run Manually
 

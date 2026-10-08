@@ -627,7 +627,8 @@ services:
     user: "${PUID:-1027}:${PGID:-100}"
     environment:
       - TZ=${TZ:-Australia/Sydney}
-      - DN_API_KEY=${NOTIFIARR_API_KEY}
+      # The client saves its API key in the persistent /config volume.
+      # An empty environment override breaks login after a reload/restart.
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/notifiarr:/config'
       - '/etc/machine-id:/etc/machine-id:ro'
