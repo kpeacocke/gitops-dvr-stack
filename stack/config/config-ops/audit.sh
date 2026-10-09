@@ -253,7 +253,9 @@ check_kometa_last_run() {
   maximum_age=${KOMETA_MAX_RUN_AGE_MINUTES:-2160}
   if [ "$modified" -eq 0 ] || [ "$age_minutes" -gt "$maximum_age" ]; then
     fail "Kometa log is older than ${maximum_age} minutes; recent success is unproven"
-  elif printf '%s' "$recent" | grep -Eiq '\[ERROR\]|Config Error:|Plex Error:|Traceback \(most recent call'; then
+  # INFO summaries can quote "Plex Error: No Items found" for empty collections.
+  # Match actual error severity, tracebacks, or unstructured error lines instead.
+  elif printf '%s' "$recent" | grep -Eiq '\[(ERROR|CRITICAL)\]|^[[:space:]]*(Config Error:|Plex Error:)|Traceback \(most recent call'; then
     fail "Kometa recent log contains execution errors"
   elif printf '%s' "$recent" | grep -q 'Finished .* Run'; then
     ok "Kometa has a recent completed run without detected execution errors"
