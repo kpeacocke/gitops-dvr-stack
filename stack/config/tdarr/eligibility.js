@@ -30,6 +30,11 @@ module.exports = async (args) => {
       throw new Error('Insufficient headroom: preserve 500 GiB plus twice the source size.');
     }
   }
-  args.variables.sourceSnapshot = { size: stat.size, mtimeMs: stat.mtimeMs };
+  // Tdarr transports variables through JSON. Fractional epoch milliseconds can
+  // round in transit; decimal strings preserve the exact filesystem timestamp.
+  const exactStat = await fs.stat(file._id, { bigint: true });
+  args.variables.sourceSnapshot = {
+    size: exactStat.size.toString(), mtimeNs: exactStat.mtimeNs.toString(),
+  };
   return done(1, 'Eligible SDR H.264 source; original retained until all checks pass.');
 };

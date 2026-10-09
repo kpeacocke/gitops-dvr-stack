@@ -3,10 +3,12 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
-const sourceStat = { size: 1000000, mtimeMs: 1, nlink: 1 };
+const sourceStat = { size: 1000000, mtimeMs: 1, mtimeNs: 1000000n, nlink: 1 };
 function plugin(name, stat = sourceStat, available = 1000 * 1024 ** 3) {
   const context = { module: { exports: {} }, require: (name) => name === 'fs'
-    ? { promises: { stat: async () => stat, statfs: async () => ({ bavail: available, bsize: 1 }) } }
+    ? { promises: { stat: async (file, options) => options?.bigint
+      ? { ...stat, size: BigInt(stat.size) } : stat,
+    statfs: async () => ({ bavail: available, bsize: 1 }) } }
     : require(name) };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, `${name}.js`), 'utf8'), context);
   return context.module.exports;
@@ -33,7 +35,9 @@ test('eligible SDR passes; unsafe sources are skipped', async () => {
 function validationArgs() {
   const a = args();
   a.originalLibraryFile = structuredClone(a.inputFileObj);
-  a.variables.sourceSnapshot = { ...sourceStat };
+  a.variables.sourceSnapshot = {
+    size: String(sourceStat.size), mtimeNs: String(sourceStat.mtimeNs),
+  };
   Object.assign(a.inputFileObj.ffProbeData.streams[0], { codec_name: 'hevc', pix_fmt: 'yuv420p10le' });
   return a;
 }
@@ -47,6 +51,20 @@ test('validation rejects source mutation, missing tracks and changed output', as
     a => a.inputFileObj.ffProbeData.streams[1].disposition = { forced: 1 }]) {
     const a = validationArgs(); change(a); await assert.rejects(plugin('validate')(a));
   }
+});
+test('source timestamps survive JSON transport without losing mutation detection', async () => {
+  const stat = { ...sourceStat, mtimeMs: 1791510123319.0447,
+    mtimeNs: 1791510123319044561n };
+  const original = args();
+  original.inputFileObj._id = '/pilot/precision.mkv';
+  await plugin('eligibility', stat)(original);
+  const a = validationArgs();
+  a.variables = JSON.parse(JSON.stringify(original.variables));
+  assert.equal(a.variables.sourceSnapshot.mtimeNs, '1791510123319044561');
+  assert.equal((await plugin('validate', stat)(a)).outputNumber, 1);
+  await assert.rejects(plugin('validate', { ...stat, mtimeNs: stat.mtimeNs + 1n })(a), /Source changed/);
+  a.variables.sourceSnapshot = { size: stat.size, mtimeMs: 1791510123319.045 };
+  await assert.rejects(plugin('validate', stat)(a), /Source changed/);
 });
 test('flow embeds current scripts and only validated success reaches replacement', () => {
   const flow = require('./sdr-hevc-flow.json');

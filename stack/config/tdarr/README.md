@@ -16,7 +16,11 @@ The flow converts progressive SDR H.264 MKV up to 1080p to HEVC Main10, Intel QS
 
 Replacement requires 10–90% of original size, duration within 0.1%, a full decode health check, matching streams, dimensions, languages and track dispositions, and an unchanged source. Errors stop before replacement. The flow reserves 500 GiB plus twice the source size on cache and source filesystems. Successful replacement is lossy and removes the old file; validation cannot prove visual quality or replace a backup. Keep pilot originals outside the watched pilot directory for comparison.
 
-Run safety tests with `node --test stack/config/tdarr/safety.test.cjs`. The JSON embeds the JavaScript source; regenerate embedded code when editing a script. Tests detect drift.
+Source snapshots carry file size and nanosecond modification time as decimal strings. This preserves exact mutation detection across Tdarr's JSON transport; floating-point millisecond timestamps can round and incorrectly reject an unchanged source. Legacy snapshots fail closed.
+
+`fix-source-timestamps.cjs` migrates the known deployed primary, hybrid and audit flows without replacing customised graphs. It requires paused libraries and drained, paused nodes, previews by default, and backs up original flows before `--apply`. This incident-specific migration reads the isolated pilot manifest under `/app/server/recovery-20261009`; it is not a general fresh-install command. Verify a real pilot before enabling production processing.
+
+Run safety tests with `node --test stack/config/tdarr/*test.cjs`. The JSON embeds the JavaScript source; regenerate embedded code when editing a script. Tests detect drift.
 
 ## Backlog operation and assessment
 
