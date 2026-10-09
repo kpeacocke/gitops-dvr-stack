@@ -117,7 +117,7 @@ module.exports = async (args) => {
   const regression = [];
   for (const [index, source] of sources.entries()) {
     const before = await scan(source);
-    const stat = await fs.stat(source);
+    const stat = await fs.stat(source, { bigint: true });
     const command = { init: true, overallInputArguments: [], overallOuputArguments: [],
       streams: structuredClone(before.ffProbeData.streams) };
     await encode({ ...args, variables: { ffmpegCommand: command } });
@@ -131,7 +131,9 @@ module.exports = async (args) => {
     await run([...commandArgs(true), fixed]);
     const after = await scan(fixed);
     await validate({ ...args, originalLibraryFile: before, inputFileObj: after,
-      variables: { sourceSnapshot: { size: stat.size, mtimeMs: stat.mtimeMs } } });
+      variables: { sourceSnapshot: {
+        size: stat.size.toString(), mtimeNs: stat.mtimeNs.toString(),
+      } } });
     await health({ ...args, inputFileObj: after });
     const result = { source, fixed: 'stream-validation-and-decode-passed', streams: after.ffProbeData.streams.length };
     if (index === 0) {

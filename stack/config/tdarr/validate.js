@@ -3,8 +3,9 @@ module.exports = async (args) => {
   const before = args.originalLibraryFile;
   const after = args.inputFileObj;
   const snapshot = args.variables.sourceSnapshot;
-  const stat = await fs.stat(before._id);
-  if (!snapshot || stat.size !== snapshot.size || stat.mtimeMs !== snapshot.mtimeMs) {
+  const stat = await fs.stat(before._id, { bigint: true });
+  if (!snapshot || stat.size.toString() !== snapshot.size
+      || stat.mtimeNs.toString() !== snapshot.mtimeNs) {
     throw new Error('Source changed during encoding; keep original.');
   }
   const a = before.ffProbeData?.streams || [];
