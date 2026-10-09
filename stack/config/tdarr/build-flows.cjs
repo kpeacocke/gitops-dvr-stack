@@ -4,6 +4,17 @@ const read = name => fs.readFileSync(path.join(__dirname, name), 'utf8');
 const flow = JSON.parse(read('sdr-hevc-flow.json'));
 for (const [id, name] of [['eligible','eligibility'],['encode','encode'],['validate','validate'],['health','health']])
   flow.flowPlugins.find(p => p.id === id).inputsDB.code = read(`${name}.js`);
+if (!flow.flowPlugins.some(p => p.id === 'preserve-filename')) {
+  flow.flowPlugins.push({ name: 'Preserve original filename before replacement',
+    sourceRepo: 'Community', pluginName: 'customFunction', version: '1.0.0',
+    id: 'preserve-filename', position: { x: 300, y: 1035 }, inputsDB: {} });
+  for (const edge of flow.flowEdges) {
+    if (edge.target === 'replace') edge.target = 'preserve-filename';
+  }
+  flow.flowEdges.push({ source: 'preserve-filename', sourceHandle: '1',
+    target: 'replace', targetHandle: null, id: 'preserve-filename-edge' });
+}
+flow.flowPlugins.find(p => p.id === 'preserve-filename').inputsDB.code = read('preserve-filename.js');
 fs.writeFileSync(path.join(__dirname, 'sdr-hevc-flow.json'), JSON.stringify(flow, null, 2) + '\n');
 let code = read('backlog-audit.js');
 for (const name of ['eligibility', 'encode', 'validate', 'health'])

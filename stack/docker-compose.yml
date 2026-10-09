@@ -843,7 +843,8 @@ services:
       - transcodecpuWorkers=0
       - healthcheckgpuWorkers=0
       - healthcheckcpuWorkers=0
-      - startPaused=false
+      # Contain the filename-replacement incident until recovery is reviewed.
+      - startPaused=true
     volumes:
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/server:/app/server'
       - '${CONFIG_ROOT:?Set CONFIG_ROOT in .env}/tdarr/configs:/app/configs'

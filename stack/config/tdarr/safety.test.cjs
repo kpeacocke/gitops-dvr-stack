@@ -55,7 +55,9 @@ test('flow embeds current scripts and only validated success reaches replacement
       fs.readFileSync(path.join(__dirname, `${file}.js`), 'utf8').replace(/\r/g, ''));
   }
   assert.equal(flow.flowEdges.filter(e => e.target === 'replace').length, 1);
-  assert.equal(flow.flowEdges.find(e => e.target === 'replace').source, 'validate');
+  assert.equal(flow.flowEdges.find(e => e.target === 'replace').source, 'preserve-filename');
+  assert.equal(flow.flowEdges.filter(e => e.target === 'preserve-filename').length, 1);
+  assert.equal(flow.flowEdges.find(e => e.target === 'preserve-filename').source, 'validate');
   assert.ok(flow.flowEdges.every(e => e.sourceHandle === '1'));
 });
 test('strict health check rejects decode errors even with a zero exit status', async () => {

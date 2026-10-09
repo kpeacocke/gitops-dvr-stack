@@ -86,3 +86,19 @@ flow, schedule, processing flags and library roots remain unchanged. The files
 are private to the service. This does not clear historical scanner errors or
 prove a later scan completed successfully. New managed libraries receive the
 same exclusion from `configure.cjs`.
+# Filename preservation incident and recovery
+
+`replaceOriginalFile` uses the working file's basename. FFmpeg's working
+`output.mkv` must therefore never reach that plugin directly. The production
+flow now inserts `preserve-filename.js` after validation and before replacement.
+It creates an atomic, non-overwriting cache hardlink with the original name,
+checks collisions, rejects unidentified `output.*` originals and changed
+extensions, and leaves source media untouched. Both replacement paths in any
+custom hybrid flow require this guard, including remote-worker branches.
+
+The 9 October 2026 incident remains a recovery task. Keep processing disabled
+until affected-file reconciliation and an actual replacement-path pilot pass.
+Do not bulk rename `output.mkv` by directory or episode order. Match surviving
+outputs to job records, require size and timestamp agreement, inspect media,
+and use no-overwrite renames with a durable journal. Missing historical paths
+are not proof of loss until alternate names and retained copies are checked.
