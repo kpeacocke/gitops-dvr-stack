@@ -46,7 +46,19 @@ class AuditTests(unittest.TestCase):
             self.assertEqual(result.returncode, expected, result.stderr)
 
     def test_kometa_completion_is_not_enough(self):
-        cases = [('[ERROR] Plex failed\nFinished Daily Run\n', 1010, 1), ('Finished Daily Run\n', 200000, 1), ('Finished Daily Run\n', 1010, 0), ('Starting run\n', 1010, 0), ('Starting run\n', 6000, 1)]
+        cases = [
+            ('[ERROR] Plex failed\nFinished Daily Run\n', 1010, 1),
+            ('[CRITICAL] Config failed\nFinished Daily Run\n', 1010, 1),
+            ('Plex Error: Connection failed\nFinished Daily Run\n', 1010, 1),
+            ('Config Error: Missing token\nFinished Daily Run\n', 1010, 1),
+            ('Traceback (most recent call last):\nFinished Daily Run\n', 1010, 1),
+            ('[INFO] | 9 | Plex Error: No Items found in Plex |\n'
+             '[INFO] Finished 05:00 Run\n', 1010, 0),
+            ('Finished Daily Run\n', 200000, 1),
+            ('Finished Daily Run\n', 1010, 0),
+            ('Starting run\n', 1010, 0),
+            ('Starting run\n', 6000, 1),
+        ]
         with tempfile.TemporaryDirectory() as directory:
             log = Path(directory) / 'meta.log'
             source = FUNCTIONS.replace('log=/kometa-config/logs/meta.log', 'log=' + str(log))
