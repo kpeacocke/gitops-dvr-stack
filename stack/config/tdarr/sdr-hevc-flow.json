@@ -136,6 +136,20 @@
         "y": 1090
       },
       "inputsDB": {}
+    },
+    {
+      "name": "Preserve original filename before replacement",
+      "sourceRepo": "Community",
+      "pluginName": "customFunction",
+      "version": "1.0.0",
+      "id": "preserve-filename",
+      "position": {
+        "x": 300,
+        "y": 1035
+      },
+      "inputsDB": {
+        "code": "module.exports = async (args) => {\n  const fs = require('fs').promises;\n  const path = require('path');\n  const original = path.resolve(args.originalLibraryFile._id);\n  const current = path.resolve(args.inputFileObj._id);\n  const name = path.basename(original);\n  if (/^output(?:\\.|$)/i.test(name)) {\n    throw new Error('Unidentified original filename; hold for recovery.');\n  }\n  if (current === original || path.dirname(current) === path.dirname(original)) {\n    throw new Error('Expected a separate working-cache file before replacement.');\n  }\n  if (path.extname(current).toLowerCase() !== path.extname(original).toLowerCase()) {\n    throw new Error('Container extension changed; refuse an unreviewed replacement path.');\n  }\n  const target = path.join(path.dirname(current), name);\n  const stat = await fs.lstat(current);\n  if (!stat.isFile()) throw new Error('Working output must be a regular file.');\n  if (current !== target) {\n    // link() fails atomically if the destination exists. Keep the old cache\n    // name too: no copying, overwriting, or original-file deletion here.\n    try {\n      await fs.link(current, target);\n    } catch (error) {\n      if (error.code !== 'EEXIST') throw error;\n      const existing = await fs.lstat(target);\n      if (!existing.isFile() || existing.dev !== stat.dev || existing.ino !== stat.ino) {\n        throw new Error('Working filename collision; refuse to overwrite.');\n      }\n    }\n  }\n  args.jobLog(`Replacement filename preserved: ${name}`);\n  return {\n    outputFileObj: { ...args.inputFileObj, _id: target, file: target,\n      fileNameWithoutExtension: path.parse(name).name },\n    outputNumber: 1,\n    variables: args.variables,\n  };\n};\n"
+      }
     }
   ],
   "flowEdges": [
@@ -198,9 +212,16 @@
     {
       "source": "validate",
       "sourceHandle": "1",
-      "target": "replace",
+      "target": "preserve-filename",
       "targetHandle": null,
       "id": "edge8"
+    },
+    {
+      "source": "preserve-filename",
+      "sourceHandle": "1",
+      "target": "replace",
+      "targetHandle": null,
+      "id": "preserve-filename-edge"
     }
   ]
 }
